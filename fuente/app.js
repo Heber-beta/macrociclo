@@ -581,6 +581,7 @@ function header(){
       <button data-act="go" data-arg="library">Biblioteca de ejercicios</button>
       <button data-act="go" data-arg="guide">Guía y escala de Borg</button>
       <button data-act="go" data-arg="profile">Perfil y datos</button>
+      ${installEvt ? '<button data-act="install">Instalar app en este equipo</button>' : ''}
       ${Sync.b===SupaB ? '<button data-act="signOut">Cerrar sesión</button>' : ''}</div>` : '';
   return `<header class="top"><div class="wrap top-in">
     <button class="brand" data-act="go" data-arg="home">Macrociclo<small>${sub}</small></button>
@@ -1181,7 +1182,11 @@ function openMacro(id){ UI.mid = id; UI.screen = 'macro'; UI.tab = 'hoy'; UI.ses
 function moveLog(M, key, i, j){ const L = E(M)['log:'+key]; if (!L || !L.ex) return; const a = L.ex[i], b = L.ex[j]; L.ex[i] = b ?? null; L.ex[j] = a ?? null; markEntry(M.id,'log:'+key); }
 function setsOf(M,key,i){ const Ex = E(M); const L = Ex['log:'+key] || (Ex['log:'+key] = {}); L.ex = L.ex || []; while (L.ex.length<=i) L.ex.push(null); L.ex[i] = L.ex[i] || {sets:[]}; L.ex[i].sets = L.ex[i].sets || []; return L.ex[i].sets; }
 function autoDone(M,key){ const L = E(M)['log:'+key]; if (L && !L.done && (L.ex||[]).some(x=>x && (x.sets||[]).some(t=>num(t.r)!=null))){ L.done = true; markEntry(M.id,'log:'+key); return true; } return false; }
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); installEvt = e; });
+window.addEventListener('appinstalled', ()=>{ installEvt = null; toast('App instalada'); });
 const ACTS = {
+  install: async ()=>{ UI.menu = false; render(); if (!installEvt) return; installEvt.prompt(); try { await installEvt.userChoice; } catch(e){} installEvt = null; },
   go: a=>go(a), menu: ()=>{ UI.menu = !UI.menu; render(); },
   tab: a=>{ UI.tab = a; UI.sess = null; keepAwake(false); render(); window.scrollTo(0,0); },
   openMacro: a=>openMacro(a),
