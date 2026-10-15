@@ -19,7 +19,7 @@
 [hidden]{display:none!important}
 /* Layout: cuaderno de entrenamiento. Barra superior con el macrociclo activo, contenido en una columna de 1040px, navegación inferior en el teléfono. */
 :root{
-  --bg:#F2F5F4; --surface:#FFFFFF; --surface-2:#E7EDEB; --ink:#14201E; --muted:#5A6866; --line:#D3DCD9;
+  --bg:#CDEDE5; --bg-2:#D5E6F8; --field:#F3F8F7; --surface:#FFFFFF; --surface-2:#E7EFEE; --ink:#14201E; --muted:#4F5F5D; --line:#C5D6D3;
   --accent:#0A7A73; --accent-soft:#D5ECE9; --accent-ink:#FFFFFF;
   --t-test:#6A4FD6; --t-load:#0A7A73; --t-deload:#3B8ED0; --t-trans:#8B9795;
   --ok:#2A8650; --warn:#B87C05; --crit:#C4413A;
@@ -30,21 +30,22 @@
   --r:10px;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#0E1413; --surface:#162020; --surface-2:#1F2B2A; --ink:#E4EDEB; --muted:#93A4A1; --line:#2B3937;
+  --bg:#0C1D1F; --bg-2:#111A2B; --field:#0F1918; --surface:#162323; --surface-2:#1F2D2C; --ink:#E4EDEB; --muted:#93A4A1; --line:#2B3B3A;
   --accent:#2DB8AE; --accent-soft:#183E3B; --accent-ink:#06201E;
   --t-test:#9D88F3; --t-load:#2DB8AE; --t-deload:#6DB3EA; --t-trans:#7C8A88;
   --ok:#4CC27F; --warn:#E3A73A; --crit:#EE6D62;
   --ok-soft:#173A27; --warn-soft:#3A2F14; --crit-soft:#3E1D1A; --scrim:rgba(0,0,0,.6); color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --bg:#0E1413; --surface:#162020; --surface-2:#1F2B2A; --ink:#E4EDEB; --muted:#93A4A1; --line:#2B3937;
+  --bg:#0C1D1F; --bg-2:#111A2B; --field:#0F1918; --surface:#162323; --surface-2:#1F2D2C; --ink:#E4EDEB; --muted:#93A4A1; --line:#2B3B3A;
   --accent:#2DB8AE; --accent-soft:#183E3B; --accent-ink:#06201E;
   --t-test:#9D88F3; --t-load:#2DB8AE; --t-deload:#6DB3EA; --t-trans:#7C8A88;
   --ok:#4CC27F; --warn:#E3A73A; --crit:#EE6D62;
   --ok-soft:#173A27; --warn-soft:#3A2F14; --crit-soft:#3E1D1A; --scrim:rgba(0,0,0,.6); color-scheme:dark;
 }
 *{box-sizing:border-box}
-html,body{background:var(--bg)}
+html{background:var(--bg)}
+body{background:linear-gradient(160deg,var(--bg) 0%,var(--bg-2) 100%) fixed;min-height:100vh}
 body{color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;font-variant-numeric:tabular-nums}
 button,input,select,textarea{font:inherit;color:inherit}
 h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;line-height:1.1;margin:0;text-wrap:balance}
@@ -53,7 +54,7 @@ p{margin:0}
 a{color:var(--accent)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .top-in{padding-block:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .brand{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.02em;text-transform:uppercase;background:none;border:0;padding:0;cursor:pointer;text-align:left;min-width:0}
 .brand small{display:block;font-family:var(--f-body);font-weight:400;font-size:12px;letter-spacing:0;text-transform:none;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw}
@@ -91,6 +92,15 @@ main{padding-block:18px 120px;display:flex;flex-direction:column;gap:18px}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .kpi b{font-family:var(--f-display);font-size:30px;font-weight:600;line-height:1}
 .kpi span{font-size:12px;color:var(--muted)}
+.help{position:relative}
+.info{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-left:6px;vertical-align:2px;border-radius:50%;border:1.5px solid var(--accent);background:none;color:var(--accent);font:700 11px/1 var(--f-body);font-style:italic;cursor:help;padding:0}
+.help-tip{position:absolute;z-index:15;left:10px;right:10px;top:46px;background:var(--surface);color:var(--ink);border:1px solid var(--accent);border-radius:12px;padding:12px 14px;box-shadow:0 12px 32px rgba(8,40,36,.22);font:400 14px/1.45 var(--f-body);text-transform:none;letter-spacing:0;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .15s,transform .15s,visibility .15s;pointer-events:none}
+.help-tip strong{display:block;font-family:var(--f-display);font-size:18px;font-weight:600;color:var(--accent);margin-bottom:4px}
+.help-tip p{margin:6px 0 0}
+.kpi .help-tip{top:auto;bottom:calc(100% + 6px);left:0;right:auto;width:min(300px,80vw)}
+.kpi.help:nth-child(n+4) .help-tip{left:auto;right:0}
+@media (hover:hover){.help:hover .help-tip{opacity:1;visibility:visible;transform:none}}
+.help.open .help-tip{opacity:1;visibility:visible;transform:none}
 .pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--surface-2);color:var(--muted);white-space:nowrap;font-family:var(--f-body);letter-spacing:0}
 .pill.test{background:color-mix(in srgb,var(--t-test) 16%,transparent);color:var(--t-test)}
 .pill.load{background:color-mix(in srgb,var(--t-load) 16%,transparent);color:var(--t-load)}
@@ -106,12 +116,12 @@ main{padding-block:18px 120px;display:flex;flex-direction:column;gap:18px}
 .btn.lg{padding:12px 20px;font-size:16px}
 .btn:disabled{opacity:.45;cursor:default}
 label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:600;min-width:0}
-input[type=number],input[type=text],input[type=date],input[type=email],input[type=password],input[type=search],select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-width:0;font-size:16px;color:var(--ink)}
+input[type=number],input[type=text],input[type=date],input[type=email],input[type=password],input[type=search],select,textarea{background:var(--field);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-width:0;font-size:16px;color:var(--ink)}
 textarea{min-height:70px;resize:vertical}
 input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
 .fields{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
 .chips{display:flex;flex-wrap:wrap;gap:4px}
-.chip{min-width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-weight:700;font-family:var(--f-display);font-size:17px;padding:0 8px}
+.chip{min-width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--field);cursor:pointer;font-weight:700;font-family:var(--f-display);font-size:17px;padding:0 8px}
 .chip.txt{font-family:var(--f-body);font-size:14px;font-weight:600}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
@@ -148,7 +158,7 @@ td.wrap-txt{white-space:normal;min-width:200px}
 .setrow input{padding:7px 8px}
 .setrow.head{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 .setrow.done .n{color:var(--ok)}
-.tick{width:40px;height:38px;border-radius:8px;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-weight:700;color:var(--muted)}
+.tick{width:40px;height:38px;border-radius:8px;border:1px solid var(--line);background:var(--field);cursor:pointer;font-weight:700;color:var(--muted)}
 .tick[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#fff}
 details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:14px}
 details[open] summary{margin-bottom:6px}
@@ -176,7 +186,7 @@ details[open] summary{margin-bottom:6px}
 .editrow .wide{grid-column:1 / -2}
 .editrow label.f{font-size:11px}
 .editrow input,.editrow select{padding:6px 7px;font-size:15px}
-.expick{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:6px 8px;text-align:left;cursor:pointer;font-weight:600;width:100%;min-height:36px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.expick{border:1px solid var(--line);background:var(--field);border-radius:8px;padding:6px 8px;text-align:left;cursor:pointer;font-weight:600;width:100%;min-height:36px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (max-width:760px){.editrow{grid-template-columns:repeat(3,minmax(0,1fr))}.editrow .exsel{grid-column:1 / -1}.editrow .wide{grid-column:1 / -1}.editrow .acts{grid-column:1 / -1;justify-content:flex-end}}
 .acts{display:flex;gap:2px;flex-wrap:wrap}
 .icon-btn{border:1px solid var(--line);background:var(--surface);min-width:32px;height:32px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);padding:0 6px}
@@ -187,7 +197,7 @@ dl.kv{display:grid;grid-template-columns:minmax(110px,auto) 1fr;gap:6px 14px;mar
 dl.kv dt{color:var(--muted);font-weight:600}
 dl.kv dd{margin:0}
 .modal{position:fixed;inset:0;z-index:70;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;padding-top:env(safe-area-inset-top,0px)}
-.sheet{background:var(--bg);width:min(760px,100%);max-height:88vh;border-radius:16px 16px 0 0;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet{background:var(--field);width:min(760px,100%);max-height:88vh;border-radius:16px 16px 0 0;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (min-width:761px){.modal{align-items:center}.sheet{border-radius:16px;max-height:84vh}}
 .sheet-h{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px;background:var(--surface)}
 .sheet-b{overflow:auto;padding:12px 16px 20px;display:flex;flex-direction:column;gap:8px}
@@ -1332,7 +1342,7 @@ function viewSession(M){
       <div class="kpi"><span>Carga interna sRPE</span><b>${fmt(s.srpe)}</b><span>${s.done?`${fmt(s.dur)} min × RPE ${fmt(s.rpe)}`:'Marca la sesión como realizada'}</span></div>
       <div class="kpi"><span>Índice Hooper (4-28)</span><b>${s.hooper??'—'}</b><span>${s.hooper==null?'Completa los 4 valores':s.hooper>20?'Bajo: prioriza descanso':s.hooper>14?'Moderado':'Bueno'}</span></div>
       <div class="kpi"><span>Volumen / TUT</span><b>${fmt(s.vr)}</b><span>reps · ${fmt(s.tr)} s</span></div>
-      <div class="kpi"><span>Tonelaje</span><b>${fmt(s.ton)}</b><span>kg</span></div>
+      <div class="kpi help"><span>Tonelaje${helpTip('k_ton')}</span><b>${fmt(s.ton)}</b><span>kg</span></div>
       <div class="kpi"><span>Cumplimiento</span><b>${pct(s.compl)}</b><span>real vs plan</span></div>
     </div></section>`;
 }
@@ -1438,6 +1448,43 @@ function drawCharts(){
     el.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(sp.label||'')}">${g}</svg>`;
   });
 }
+/* ================= Ayudas al pasar el mouse ================= */
+const HELP = {
+  srpe:['Carga interna semanal (sRPE)',
+    'Cuánto te costó entrenar cada semana. Cada sesión vale lo duro que la sentiste (RPE de 0 a 10) multiplicado por los minutos que duró, y se suman las de la semana. La línea es tu promedio de las últimas 4 semanas.',
+    'Ver si el entrenamiento sube de forma gradual, que es como el cuerpo se adapta sin lesionarse.',
+    'Barras que suben poco a poco son buena señal. Una barra que salta muy por encima de la línea es una semana mucho más dura de lo habitual: más riesgo de fatiga o lesión. Para que aparezca, al cerrar cada sesión anota la duración y el RPE.'],
+  acwr:['ACWR (relación carga aguda : crónica)',
+    'Compara lo que entrenaste esta semana (carga aguda) con tu promedio de las últimas 4 semanas (carga crónica, lo que tu cuerpo ya está acostumbrado a hacer).',
+    'Detectar si de golpe estás haciendo mucho más, o mucho menos, de lo que tu cuerpo tolera. Es uno de los indicadores más usados para prevenir lesiones.',
+    'La franja verde (0,8 a 1,3) es la zona segura. Sobre 1,5 estás subiendo demasiado rápido: conviene aflojar. Bajo 0,8 entrenas menos que de costumbre, lo que es normal en semanas de descarga. Aparece desde la semana 3.'],
+  vol:['Volumen: plan vs real',
+    'El total de repeticiones de cada semana: en gris lo que decía el plan y en color lo que realmente hiciste.',
+    'Saber si estás cumpliendo el plan y si este es realista para ti.',
+    'Si las barras de color quedan cerca de las grises, cumpliste. Si quedan muy por debajo varias semanas seguidas, el plan quizá es demasiado exigente y conviene ajustarlo.'],
+  rpe:['Intensidad: RPE objetivo vs real',
+    'Qué tan duro se sintió el entrenamiento, en la escala de esfuerzo de 0 a 10 (escala de Borg). La línea punteada es lo que pedía el plan y la roja lo que anotaste.',
+    'Ajustar la exigencia: el plan debe costarte lo que dice, ni más ni menos.',
+    'Si tu línea va siempre por encima, te está costando más de lo previsto: baja peso o repeticiones. Si va muy por debajo, puedes exigirte un poco más.'],
+  hooper:['Bienestar (índice de Hooper)',
+    'Suma cuatro cosas que anotas al cerrar cada sesión: calidad del sueño, fatiga, dolor muscular y estrés, cada una de 1 (muy bien) a 7 (muy mal). El total va de 4 a 28.',
+    'Detectar cansancio acumulado antes de que se note en tu rendimiento.',
+    'Menor es mejor. Si sube varias semanas seguidas, conviene dormir más, comer mejor o adelantar una semana de descarga.'],
+  peso:['Peso corporal',
+    'Tu peso de cada semana, anotado en la pestaña Cuerpo.',
+    'Ver la tendencia de tu peso a lo largo del macrociclo, no el número de un día.',
+    'Fíjate en la dirección general. Diferencias de 0,5 a 1 kg entre semanas son normales por agua y comida. Pésate siempre el mismo día, en ayunas.'],
+  k_ses:['Sesiones','Sesiones que registraste sobre el total que tiene el plan.'],
+  k_load:['Carga total sRPE','Suma de la carga de todas tus sesiones (duración × esfuerzo). Se mide en UA, unidades arbitrarias: sirve para comparar semanas entre sí, no tiene un valor "correcto".'],
+  k_vol:['Volumen real','Total de repeticiones que has hecho en todo el macrociclo.'],
+  k_ton:['Tonelaje','Kilos totales que has movido: repeticiones × (la parte de tu peso corporal que levanta cada ejercicio + el lastre). Sube cuando haces más repeticiones o con más peso.'],
+  k_acwr:['ACWR actual','Relación entre lo que entrenaste esta semana y tu promedio de las últimas 4. Entre 0,8 y 1,3 estás en zona segura; sobre 1,5, estás subiendo demasiado rápido.'],
+};
+function helpTip(key){
+  const h = HELP[key]; if (!h) return '';
+  const body = h.length>2 ? `<p>${esc(h[1])}</p><p><b>Para qué te sirve:</b> ${esc(h[2])}</p><p><b>Cómo leerlo:</b> ${esc(h[3])}</p>` : `<p>${esc(h[1])}</p>`;
+  return `<button class="info" data-act="help" aria-label="Qué significa ${esc(h[0])}">i</button><div class="help-tip" role="tooltip"><strong>${esc(h[0])}</strong>${body}</div>`;
+}
 function legend(items){ return `<div class="legend">${items.map(([c,l,dash])=>`<span><i style="background:${c};${dash?'height:3px;vertical-align:3px':''}"></i>${esc(l)}</span>`).join('')}</div>`; }
 
 /* ----- Progreso ----- */
@@ -1455,24 +1502,24 @@ function viewProgreso(M){
   const wlo = wf.length ? Math.floor(Math.min(...wf, w0??wf[0])-2) : 60, whi = wf.length ? Math.ceil(Math.max(...wf, w0??wf[0])+1) : 100;
   return `<div><span class="eyebrow">Control de la carga</span><h1>Progreso</h1></div>
   <section class="kpis">
-    <div class="kpi"><span>Sesiones</span><b>${sm.done}<small class="muted" style="font-size:16px"> / ${sm.total}</small></b></div>
-    <div class="kpi"><span>Carga total sRPE</span><b>${fmt(sum(all.map(o=>o.load)))}</b><span>UA</span></div>
-    <div class="kpi"><span>Volumen real</span><b>${fmt(sum(all.map(o=>o.vr)))}</b><span>repeticiones</span></div>
-    <div class="kpi"><span>Tonelaje</span><b>${fmt(sum(all.map(o=>o.ton))/1000,1)}</b><span>toneladas</span></div>
-    <div class="kpi"><span>ACWR actual</span><b>${cur.acwr==null?'—':fmt(cur.acwr,2)}</b><span>zona segura 0,8-1,3</span></div>
+    <div class="kpi help"><span>Sesiones${helpTip('k_ses')}</span><b>${sm.done}<small class="muted" style="font-size:16px"> / ${sm.total}</small></b></div>
+    <div class="kpi help"><span>Carga total sRPE${helpTip('k_load')}</span><b>${fmt(sum(all.map(o=>o.load)))}</b><span>UA</span></div>
+    <div class="kpi help"><span>Volumen real${helpTip('k_vol')}</span><b>${fmt(sum(all.map(o=>o.vr)))}</b><span>repeticiones</span></div>
+    <div class="kpi help"><span>Tonelaje${helpTip('k_ton')}</span><b>${fmt(sum(all.map(o=>o.ton))/1000,1)}</b><span>toneladas</span></div>
+    <div class="kpi help"><span>ACWR actual${helpTip('k_acwr')}</span><b>${cur.acwr==null?'—':fmt(cur.acwr,2)}</b><span>zona segura 0,8-1,3</span></div>
   </section>
   <section class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))">
-    <div class="card"><h3>Carga interna semanal (sRPE)</h3>${legend([['var(--accent)','Carga (UA)'],['var(--t-test)','Media 4 semanas']])}
+    <div class="card help"><h3>Carga interna semanal (sRPE)${helpTip('srpe')}</h3>${legend([['var(--accent)','Carga (UA)'],['var(--t-test)','Media 4 semanas']])}
       ${chartBox({x, mark, label:'Carga semanal', series:[{type:'bar',name:'Carga',v:all.map(o=>o.load||null),color:'var(--accent)'},{type:'line',name:'Media 4 semanas',v:all.map((o,i)=>upto(o.chronic||null,i)),color:'var(--t-test)'}]})}</div>
-    <div class="card"><h3>ACWR (agudo : crónico)</h3>${legend([['var(--ok)','Zona 0,8-1,3'],['var(--ink)','ACWR']])}
+    <div class="card help"><h3>ACWR (agudo : crónico)${helpTip('acwr')}</h3>${legend([['var(--ok)','Zona 0,8-1,3'],['var(--ink)','ACWR']])}
       ${chartBox({x, mark, label:'ACWR', ymin:0, ymax:Math.max(2, niceMax(Math.max(0,...all.map(o=>o.acwr||0)))), band:[0.8,1.3], series:[{type:'line',name:'ACWR',v:all.map(o=>o.acwr),color:'var(--ink)'}]})}</div>
-    <div class="card"><h3>Volumen: plan vs real (reps)</h3>${legend([['var(--t-trans)','Plan'],['var(--accent)','Real']])}
+    <div class="card help"><h3>Volumen: plan vs real (reps)${helpTip('vol')}</h3>${legend([['var(--t-trans)','Plan'],['var(--accent)','Real']])}
       ${chartBox({x, mark, label:'Volumen', series:[{type:'bar',name:'Plan',v:all.map(o=>o.vp),color:'var(--t-trans)',op:.45},{type:'bar',name:'Real',v:all.map(o=>o.vr||null),color:'var(--accent)'}]})}</div>
-    <div class="card"><h3>Intensidad: RPE objetivo vs real</h3>${legend([['var(--t-trans)','Objetivo',1],['var(--crit)','Real',1]])}
+    <div class="card help"><h3>Intensidad: RPE objetivo vs real${helpTip('rpe')}</h3>${legend([['var(--t-trans)','Objetivo',1],['var(--crit)','Real',1]])}
       ${chartBox({x, mark, label:'RPE', ymin:0, ymax:10, series:[{type:'line',name:'RPE objetivo',v:all.map(o=>o.rpeObj),color:'var(--t-trans)',dash:1},{type:'line',name:'RPE real',v:all.map(o=>o.rpeReal),color:'var(--crit)'}]})}</div>
-    <div class="card"><h3>Bienestar (Hooper, menor es mejor)</h3>${legend([['var(--warn)','Hooper medio']])}
+    <div class="card help"><h3>Bienestar (Hooper, menor es mejor)${helpTip('hooper')}</h3>${legend([['var(--warn)','Hooper medio']])}
       ${chartBox({x, mark, label:'Hooper', ymin:4, ymax:28, series:[{type:'line',name:'Hooper',v:all.map(o=>o.hooper),color:'var(--warn)'}]})}</div>
-    <div class="card"><h3>Peso corporal (kg)</h3>${legend([['var(--t-deload)','Peso']])}
+    <div class="card help"><h3>Peso corporal (kg)${helpTip('peso')}</h3>${legend([['var(--t-deload)','Peso']])}
       ${chartBox({x, mark, label:'Peso', ymin:wlo, ymax:whi, series:[{type:'line',name:'Peso',v:wv,color:'var(--t-deload)'}]})}</div>
   </section>
   <section class="flat card"><h3>Resumen semanal</h3>
@@ -1737,6 +1784,9 @@ document.addEventListener('click', e=>{
   if (e.target.id==='modal'){ closeModal(); return; }
   const s = e.target.closest('[data-set]');
   if (s){ const cur = num(getPath(s.dataset.set)), v = +s.dataset.v; setPath(s.dataset.set, cur===v ? null : v); render(); return; }
+  const hb = e.target.closest('.info');
+  document.querySelectorAll('.help.open').forEach(h=>{ if (!hb || h!==hb.closest('.help')) h.classList.remove('open'); });
+  if (hb){ e.preventDefault(); hb.closest('.help').classList.toggle('open'); return; }
   const a = e.target.closest('[data-act]');
   if (a && ACTS[a.dataset.act]){ e.preventDefault(); ACTS[a.dataset.act](a.dataset.arg); }
 });
@@ -1787,6 +1837,8 @@ function toast(msg){ const t = $('#toast'); t.textContent = msg; t.hidden = fals
 let rzT; window.addEventListener('resize', ()=>{ clearTimeout(rzT); rzT = setTimeout(drawCharts, 150); });
 
 boot();
+
+document.addEventListener('mouseout', e=>{ const h = e.target.closest && e.target.closest('.help.open'); if (h && !h.contains(e.relatedTarget)) h.classList.remove('open'); });
 
 </script>
 </body>

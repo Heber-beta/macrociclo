@@ -899,7 +899,7 @@ function viewSession(M){
       <div class="kpi"><span>Carga interna sRPE</span><b>${fmt(s.srpe)}</b><span>${s.done?`${fmt(s.dur)} min × RPE ${fmt(s.rpe)}`:'Marca la sesión como realizada'}</span></div>
       <div class="kpi"><span>Índice Hooper (4-28)</span><b>${s.hooper??'—'}</b><span>${s.hooper==null?'Completa los 4 valores':s.hooper>20?'Bajo: prioriza descanso':s.hooper>14?'Moderado':'Bueno'}</span></div>
       <div class="kpi"><span>Volumen / TUT</span><b>${fmt(s.vr)}</b><span>reps · ${fmt(s.tr)} s</span></div>
-      <div class="kpi"><span>Tonelaje</span><b>${fmt(s.ton)}</b><span>kg</span></div>
+      <div class="kpi help"><span>Tonelaje${helpTip('k_ton')}</span><b>${fmt(s.ton)}</b><span>kg</span></div>
       <div class="kpi"><span>Cumplimiento</span><b>${pct(s.compl)}</b><span>real vs plan</span></div>
     </div></section>`;
 }
@@ -1005,6 +1005,43 @@ function drawCharts(){
     el.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(sp.label||'')}">${g}</svg>`;
   });
 }
+/* ================= Ayudas al pasar el mouse ================= */
+const HELP = {
+  srpe:['Carga interna semanal (sRPE)',
+    'Cuánto te costó entrenar cada semana. Cada sesión vale lo duro que la sentiste (RPE de 0 a 10) multiplicado por los minutos que duró, y se suman las de la semana. La línea es tu promedio de las últimas 4 semanas.',
+    'Ver si el entrenamiento sube de forma gradual, que es como el cuerpo se adapta sin lesionarse.',
+    'Barras que suben poco a poco son buena señal. Una barra que salta muy por encima de la línea es una semana mucho más dura de lo habitual: más riesgo de fatiga o lesión. Para que aparezca, al cerrar cada sesión anota la duración y el RPE.'],
+  acwr:['ACWR (relación carga aguda : crónica)',
+    'Compara lo que entrenaste esta semana (carga aguda) con tu promedio de las últimas 4 semanas (carga crónica, lo que tu cuerpo ya está acostumbrado a hacer).',
+    'Detectar si de golpe estás haciendo mucho más, o mucho menos, de lo que tu cuerpo tolera. Es uno de los indicadores más usados para prevenir lesiones.',
+    'La franja verde (0,8 a 1,3) es la zona segura. Sobre 1,5 estás subiendo demasiado rápido: conviene aflojar. Bajo 0,8 entrenas menos que de costumbre, lo que es normal en semanas de descarga. Aparece desde la semana 3.'],
+  vol:['Volumen: plan vs real',
+    'El total de repeticiones de cada semana: en gris lo que decía el plan y en color lo que realmente hiciste.',
+    'Saber si estás cumpliendo el plan y si este es realista para ti.',
+    'Si las barras de color quedan cerca de las grises, cumpliste. Si quedan muy por debajo varias semanas seguidas, el plan quizá es demasiado exigente y conviene ajustarlo.'],
+  rpe:['Intensidad: RPE objetivo vs real',
+    'Qué tan duro se sintió el entrenamiento, en la escala de esfuerzo de 0 a 10 (escala de Borg). La línea punteada es lo que pedía el plan y la roja lo que anotaste.',
+    'Ajustar la exigencia: el plan debe costarte lo que dice, ni más ni menos.',
+    'Si tu línea va siempre por encima, te está costando más de lo previsto: baja peso o repeticiones. Si va muy por debajo, puedes exigirte un poco más.'],
+  hooper:['Bienestar (índice de Hooper)',
+    'Suma cuatro cosas que anotas al cerrar cada sesión: calidad del sueño, fatiga, dolor muscular y estrés, cada una de 1 (muy bien) a 7 (muy mal). El total va de 4 a 28.',
+    'Detectar cansancio acumulado antes de que se note en tu rendimiento.',
+    'Menor es mejor. Si sube varias semanas seguidas, conviene dormir más, comer mejor o adelantar una semana de descarga.'],
+  peso:['Peso corporal',
+    'Tu peso de cada semana, anotado en la pestaña Cuerpo.',
+    'Ver la tendencia de tu peso a lo largo del macrociclo, no el número de un día.',
+    'Fíjate en la dirección general. Diferencias de 0,5 a 1 kg entre semanas son normales por agua y comida. Pésate siempre el mismo día, en ayunas.'],
+  k_ses:['Sesiones','Sesiones que registraste sobre el total que tiene el plan.'],
+  k_load:['Carga total sRPE','Suma de la carga de todas tus sesiones (duración × esfuerzo). Se mide en UA, unidades arbitrarias: sirve para comparar semanas entre sí, no tiene un valor "correcto".'],
+  k_vol:['Volumen real','Total de repeticiones que has hecho en todo el macrociclo.'],
+  k_ton:['Tonelaje','Kilos totales que has movido: repeticiones × (la parte de tu peso corporal que levanta cada ejercicio + el lastre). Sube cuando haces más repeticiones o con más peso.'],
+  k_acwr:['ACWR actual','Relación entre lo que entrenaste esta semana y tu promedio de las últimas 4. Entre 0,8 y 1,3 estás en zona segura; sobre 1,5, estás subiendo demasiado rápido.'],
+};
+function helpTip(key){
+  const h = HELP[key]; if (!h) return '';
+  const body = h.length>2 ? `<p>${esc(h[1])}</p><p><b>Para qué te sirve:</b> ${esc(h[2])}</p><p><b>Cómo leerlo:</b> ${esc(h[3])}</p>` : `<p>${esc(h[1])}</p>`;
+  return `<button class="info" data-act="help" aria-label="Qué significa ${esc(h[0])}">i</button><div class="help-tip" role="tooltip"><strong>${esc(h[0])}</strong>${body}</div>`;
+}
 function legend(items){ return `<div class="legend">${items.map(([c,l,dash])=>`<span><i style="background:${c};${dash?'height:3px;vertical-align:3px':''}"></i>${esc(l)}</span>`).join('')}</div>`; }
 
 /* ----- Progreso ----- */
@@ -1022,24 +1059,24 @@ function viewProgreso(M){
   const wlo = wf.length ? Math.floor(Math.min(...wf, w0??wf[0])-2) : 60, whi = wf.length ? Math.ceil(Math.max(...wf, w0??wf[0])+1) : 100;
   return `<div><span class="eyebrow">Control de la carga</span><h1>Progreso</h1></div>
   <section class="kpis">
-    <div class="kpi"><span>Sesiones</span><b>${sm.done}<small class="muted" style="font-size:16px"> / ${sm.total}</small></b></div>
-    <div class="kpi"><span>Carga total sRPE</span><b>${fmt(sum(all.map(o=>o.load)))}</b><span>UA</span></div>
-    <div class="kpi"><span>Volumen real</span><b>${fmt(sum(all.map(o=>o.vr)))}</b><span>repeticiones</span></div>
-    <div class="kpi"><span>Tonelaje</span><b>${fmt(sum(all.map(o=>o.ton))/1000,1)}</b><span>toneladas</span></div>
-    <div class="kpi"><span>ACWR actual</span><b>${cur.acwr==null?'—':fmt(cur.acwr,2)}</b><span>zona segura 0,8-1,3</span></div>
+    <div class="kpi help"><span>Sesiones${helpTip('k_ses')}</span><b>${sm.done}<small class="muted" style="font-size:16px"> / ${sm.total}</small></b></div>
+    <div class="kpi help"><span>Carga total sRPE${helpTip('k_load')}</span><b>${fmt(sum(all.map(o=>o.load)))}</b><span>UA</span></div>
+    <div class="kpi help"><span>Volumen real${helpTip('k_vol')}</span><b>${fmt(sum(all.map(o=>o.vr)))}</b><span>repeticiones</span></div>
+    <div class="kpi help"><span>Tonelaje${helpTip('k_ton')}</span><b>${fmt(sum(all.map(o=>o.ton))/1000,1)}</b><span>toneladas</span></div>
+    <div class="kpi help"><span>ACWR actual${helpTip('k_acwr')}</span><b>${cur.acwr==null?'—':fmt(cur.acwr,2)}</b><span>zona segura 0,8-1,3</span></div>
   </section>
   <section class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))">
-    <div class="card"><h3>Carga interna semanal (sRPE)</h3>${legend([['var(--accent)','Carga (UA)'],['var(--t-test)','Media 4 semanas']])}
+    <div class="card help"><h3>Carga interna semanal (sRPE)${helpTip('srpe')}</h3>${legend([['var(--accent)','Carga (UA)'],['var(--t-test)','Media 4 semanas']])}
       ${chartBox({x, mark, label:'Carga semanal', series:[{type:'bar',name:'Carga',v:all.map(o=>o.load||null),color:'var(--accent)'},{type:'line',name:'Media 4 semanas',v:all.map((o,i)=>upto(o.chronic||null,i)),color:'var(--t-test)'}]})}</div>
-    <div class="card"><h3>ACWR (agudo : crónico)</h3>${legend([['var(--ok)','Zona 0,8-1,3'],['var(--ink)','ACWR']])}
+    <div class="card help"><h3>ACWR (agudo : crónico)${helpTip('acwr')}</h3>${legend([['var(--ok)','Zona 0,8-1,3'],['var(--ink)','ACWR']])}
       ${chartBox({x, mark, label:'ACWR', ymin:0, ymax:Math.max(2, niceMax(Math.max(0,...all.map(o=>o.acwr||0)))), band:[0.8,1.3], series:[{type:'line',name:'ACWR',v:all.map(o=>o.acwr),color:'var(--ink)'}]})}</div>
-    <div class="card"><h3>Volumen: plan vs real (reps)</h3>${legend([['var(--t-trans)','Plan'],['var(--accent)','Real']])}
+    <div class="card help"><h3>Volumen: plan vs real (reps)${helpTip('vol')}</h3>${legend([['var(--t-trans)','Plan'],['var(--accent)','Real']])}
       ${chartBox({x, mark, label:'Volumen', series:[{type:'bar',name:'Plan',v:all.map(o=>o.vp),color:'var(--t-trans)',op:.45},{type:'bar',name:'Real',v:all.map(o=>o.vr||null),color:'var(--accent)'}]})}</div>
-    <div class="card"><h3>Intensidad: RPE objetivo vs real</h3>${legend([['var(--t-trans)','Objetivo',1],['var(--crit)','Real',1]])}
+    <div class="card help"><h3>Intensidad: RPE objetivo vs real${helpTip('rpe')}</h3>${legend([['var(--t-trans)','Objetivo',1],['var(--crit)','Real',1]])}
       ${chartBox({x, mark, label:'RPE', ymin:0, ymax:10, series:[{type:'line',name:'RPE objetivo',v:all.map(o=>o.rpeObj),color:'var(--t-trans)',dash:1},{type:'line',name:'RPE real',v:all.map(o=>o.rpeReal),color:'var(--crit)'}]})}</div>
-    <div class="card"><h3>Bienestar (Hooper, menor es mejor)</h3>${legend([['var(--warn)','Hooper medio']])}
+    <div class="card help"><h3>Bienestar (Hooper, menor es mejor)${helpTip('hooper')}</h3>${legend([['var(--warn)','Hooper medio']])}
       ${chartBox({x, mark, label:'Hooper', ymin:4, ymax:28, series:[{type:'line',name:'Hooper',v:all.map(o=>o.hooper),color:'var(--warn)'}]})}</div>
-    <div class="card"><h3>Peso corporal (kg)</h3>${legend([['var(--t-deload)','Peso']])}
+    <div class="card help"><h3>Peso corporal (kg)${helpTip('peso')}</h3>${legend([['var(--t-deload)','Peso']])}
       ${chartBox({x, mark, label:'Peso', ymin:wlo, ymax:whi, series:[{type:'line',name:'Peso',v:wv,color:'var(--t-deload)'}]})}</div>
   </section>
   <section class="flat card"><h3>Resumen semanal</h3>
@@ -1304,6 +1341,9 @@ document.addEventListener('click', e=>{
   if (e.target.id==='modal'){ closeModal(); return; }
   const s = e.target.closest('[data-set]');
   if (s){ const cur = num(getPath(s.dataset.set)), v = +s.dataset.v; setPath(s.dataset.set, cur===v ? null : v); render(); return; }
+  const hb = e.target.closest('.info');
+  document.querySelectorAll('.help.open').forEach(h=>{ if (!hb || h!==hb.closest('.help')) h.classList.remove('open'); });
+  if (hb){ e.preventDefault(); hb.closest('.help').classList.toggle('open'); return; }
   const a = e.target.closest('[data-act]');
   if (a && ACTS[a.dataset.act]){ e.preventDefault(); ACTS[a.dataset.act](a.dataset.arg); }
 });
@@ -1354,3 +1394,5 @@ function toast(msg){ const t = $('#toast'); t.textContent = msg; t.hidden = fals
 let rzT; window.addEventListener('resize', ()=>{ clearTimeout(rzT); rzT = setTimeout(drawCharts, 150); });
 
 boot();
+
+document.addEventListener('mouseout', e=>{ const h = e.target.closest && e.target.closest('.help.open'); if (h && !h.contains(e.relatedTarget)) h.classList.remove('open'); });
