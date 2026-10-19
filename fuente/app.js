@@ -168,6 +168,7 @@ const SupaB = {
     const out = {}; (r.data||[]).forEach(x=>out[x.key] = x.data); return out;
   },
   async put(kind, id, data){
+    if (!this.user) throw new Error('sin sesión');
     const sb = this.sb, user_id = this.user.id, now = new Date().toISOString(); let r;
     if (kind==='settings') r = await sb.from('settings').upsert({user_id, data, updated_at:now});
     else if (kind==='macro'){
@@ -227,9 +228,19 @@ function markSettings(){ _allEx = null; Sync.mark('settings'); }
 /* ================= Arranque y sesión ================= */
 async function boot(){
   if (CFG.supabaseUrl && CFG.supabaseKey){
-    Sync.b = SupaB;
-    try { const u = await SupaB.init(); if (!u){ renderAuth(); return; } await startSession(u); }
-    catch(e){ UI.authMsg = 'No se pudo conectar: ' + (e.message||e); renderAuth(); }
+    Sync.b = SupaB; renderLoading();
+    let last = null; try { last = JSON.parse(localStorage.getItem('macrociclo2:lastUser') || 'null'); } catch(e){}
+    const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')), 10000));
+    try {
+      const u = await Promise.race([SupaB.init(), timeout]);
+      if (!u){ renderAuth(); return; }
+      await startSession(u);
+    } catch(e){
+      console.warn('arranque', e);
+      if (last && last.id){ SupaB.user = SupaB.user || last; await startSession(last); toast('Sin conexión con el servidor: trabajando con tus datos guardados en este equipo. Se sincroniza solo al volver la conexión.'); return; }
+      UI.authMsg = e.message==='timeout' ? 'El servidor no responde. Revisa tu conexión a internet y toca Reintentar.' : 'No se pudo conectar: ' + (e.message||e);
+      renderAuth(); const f = $('#authForm'); if (f) f.insertAdjacentHTML('beforeend', '<button class="btn" onclick="location.reload()">Reintentar</button>');
+    }
     return;
   }
   if (window.claude && window.claude.use){
@@ -241,6 +252,7 @@ async function boot(){
 }
 function renderLoading(){ $('#app').innerHTML = `<div class="auth"><p class="muted">Cargando…</p></div>`; }
 async function startSession(user){
+  if (Sync.b===SupaB && user && user.id){ try { localStorage.setItem('macrociclo2:lastUser', JSON.stringify({id:user.id, email:user.email})); } catch(e){} }
   Sync.user = user; Sync.loaded = new Set();
   if (!Sync.loadCache()) S = emptyState();
   _allEx = null;
@@ -327,7 +339,7 @@ async function signOut(){
   if (Sync.dirty.size){ UI.confirm = {msg:'Hay cambios sin subir (sin conexión). Si sales ahora quedarán solo en este dispositivo.', act:'forceSignOut', label:'Salir igual'}; render(); return; }
   forceSignOut();
 }
-async function forceSignOut(){ if (Sync.b===SupaB) await SupaB.sb.auth.signOut(); S = emptyState(); UI.screen = 'home'; UI.mid = null; UI.auth = 'login'; UI.authMsg = ''; renderAuth(); }
+async function forceSignOut(){ try { localStorage.removeItem('macrociclo2:lastUser'); } catch(e){} if (Sync.b===SupaB) await SupaB.sb.auth.signOut(); S = emptyState(); UI.screen = 'home'; UI.mid = null; UI.auth = 'login'; UI.authMsg = ''; renderAuth(); }
 
 /* ================= Macrociclo: helpers ================= */
 function curM(){ return UI.mid ? S.macros[UI.mid] : null; }
@@ -1565,6 +1577,13 @@ let toastT;
 function toast(msg){ const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(()=>t.hidden = true, 2800); }
 let rzT; window.addEventListener('resize', ()=>{ clearTimeout(rzT); rzT = setTimeout(drawCharts, 150); });
 
+function fatal(msg){
+  const app = $('#app'); if (!app || app.querySelector('.fatal')) return;
+  if (app.children.length && !app.querySelector('.auth p.muted')) { toast('Ocurrió un error: ' + msg); return; }
+  app.innerHTML = `<div class="auth"><div class="card fatal"><h2>No se pudo abrir la app</h2><p class="muted">Tus datos están a salvo. Toca Recargar; si el problema sigue, envía una captura de esta pantalla.</p><p class="small" style="word-break:break-word"><code>${esc(String(msg).slice(0,300))}</code></p><button class="btn primary lg" onclick="location.reload()">Recargar</button></div></div>`;
+}
+window.addEventListener('error', e=>fatal(e.message || 'error'));
+window.addEventListener('unhandledrejection', e=>fatal((e.reason && (e.reason.message||e.reason)) || 'error'));
 boot();
 
 document.addEventListener('mouseout', e=>{ if (!matchMedia('(hover:hover)').matches) return; const h = e.target.closest && e.target.closest('.help.open'); if (h && !h.contains(e.relatedTarget)) h.classList.remove('open'); });

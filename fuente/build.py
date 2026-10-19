@@ -4,7 +4,7 @@ shell = open(f'{H}/shell.html').read()
 lib = open(f'{H}/library.js').read()
 app = open(f'{H}/app.js').read()
 data = open(f'{H}/data.json').read()
-SUPA = '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>\n'
+SUPA = '<script src="vendor/supabase.js"></script>\n<script>window.supabase || document.write(\'<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"><\\/script>\')</script>\n'
 def body(cfg, supa=False):
     return (shell + '\n' + (SUPA if supa else '') +
       '<script>\nwindow.APP_CONFIG = ' + json.dumps(cfg) + ';\nwindow.V1_DATA = ' + data + ';\n' +
