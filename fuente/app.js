@@ -306,6 +306,7 @@ function authErr(e){
   if (/already registered/i.test(m)) return 'Ese correo ya tiene una cuenta. Entra o recupera la contraseña.';
   if (/password/i.test(m) && /6|8|short|least/i.test(m)) return 'La contraseña es muy corta.';
   if (/rate limit/i.test(m)) return 'Demasiados intentos. Espera unos minutos.';
+  if (/failed to fetch|networkerror|load failed|fetch/i.test(m)) return 'No hay conexión con el servidor de tu cuenta (Supabase). Revisa tu internet o si tu proyecto de Supabase está pausado, y vuelve a intentar. Tus datos no se han perdido.';
   return m;
 }
 async function authDo(kind){
