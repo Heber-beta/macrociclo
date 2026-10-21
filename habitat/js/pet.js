@@ -93,9 +93,25 @@ export class Pet {
 
   say(text, ms = 2600) {
     clearTimeout(this.bt);
+    const bs = this.bubble.style;
     this.bubble.textContent = text;
     this.bubble.hidden = false;
     this.bubble.classList.remove('pop');
+    bs.setProperty('--dx', '0px');
+    bs.setProperty('--dy', '0px');
+    // Que la burbuja quede completa dentro de la escena (no cortada por los bordes).
+    const scope = this.el.closest('.hero');
+    const box = scope ? scope.getBoundingClientRect() : { left: 0, right: window.innerWidth, top: 0 };
+    const r = this.bubble.getBoundingClientRect();
+    if (box) {
+      const left = Math.max(box.left, 0) + 8, right = Math.min(box.right, window.innerWidth) - 8;
+      let dx = 0;
+      if (r.left < left) dx = left - r.left;
+      else if (r.right > right) dx = right - r.right;
+      const top = Math.max(box.top, 0) + 6;
+      bs.setProperty('--dx', Math.round(dx) + 'px');
+      bs.setProperty('--dy', r.top < top ? Math.round(top - r.top) + 'px' : '0px');
+    }
     void this.bubble.offsetWidth;
     this.bubble.classList.add('pop');
     this.bt = setTimeout(() => { this.bubble.hidden = true; }, ms);

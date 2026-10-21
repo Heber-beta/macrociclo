@@ -18,8 +18,9 @@ export const PET_ORDER = ['zorro', 'gato', 'perro', 'ballena', 'axolote', 'dinos
 
 export const AREAS = {
   estudio: { label: 'Estudio', scene: 'estudio', color: '#5B9BD0', soft: '#DCEBF6', ink: '#2C5E86' },
-  entreno: { label: 'Entrenamiento', scene: 'entreno', color: '#7FB069', soft: '#E3F0D8', ink: '#2F6B4F' },
-  proyectos: { label: 'Proyectos', scene: 'proyectos', color: '#F6C453', soft: '#FBEBC4', ink: '#7A5A0E' }
+  entreno: { label: 'Ejercicio', scene: 'entreno', color: '#7FB069', soft: '#E3F0D8', ink: '#2F6B4F' },
+  proyectos: { label: 'Proyectos', scene: 'proyectos', color: '#F6C453', soft: '#FBEBC4', ink: '#7A5A0E' },
+  hogar: { label: 'Hogar y bienestar', scene: 'casa', color: '#C9A0DC', soft: '#F1E6F7', ink: '#6B3F86' }
 };
 
 export const LEVELS = {
@@ -48,11 +49,16 @@ export const DAY_SHORT = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 export const DAY_LONG = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 export const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
-// Hábitos de ejemplo para la bienvenida (se pueden editar o apagar).
-export const HABIT_TEMPLATES = [
-  { area: 'estudio', title: 'Estudiar', time: '17:00', place: 'Biblioteca', days: [1, 2, 3, 4, 5], min: 'Responder 5 preguntas', normal: 'Estudiar 25 minutos', epic: 'Estudiar 1 hora', identity: 'Soy alguien que estudia cada día' },
-  { area: 'entreno', title: 'Entrenar', time: '18:30', place: 'Gimnasio', days: [1, 3, 5], min: 'Calentar 10 minutos', normal: 'Hacer la rutina', epic: 'Rutina completa + extra', identity: 'Soy alguien que entrena' },
-  { area: 'proyectos', title: 'Avanzar mi proyecto', time: '22:00', place: 'Casa', days: [0, 1, 2, 3, 4, 6], min: 'Abrir el proyecto 5 minutos', normal: 'Trabajar 15 minutos', epic: 'Trabajar 45 minutos', identity: 'Soy alguien que termina sus proyectos' }
+// Ideas para crear un hábito rápido (el usuario siempre puede escribir el suyo).
+export const HABIT_IDEAS = [
+  { area: 'estudio', title: 'Estudiar', min: 'Responder 5 preguntas', normal: 'Estudiar 25 minutos', epic: 'Estudiar 1 hora', identity: 'Soy alguien que estudia cada día' },
+  { area: 'entreno', title: 'Entrenar', min: 'Calentar 10 minutos', normal: 'Hacer la rutina', epic: 'Rutina completa + extra', identity: 'Soy alguien que entrena' },
+  { area: 'proyectos', title: 'Avanzar mi proyecto', min: 'Abrirlo 5 minutos', normal: 'Trabajar 15 minutos', epic: 'Trabajar 45 minutos', identity: 'Soy alguien que termina sus proyectos' },
+  { area: 'estudio', title: 'Leer', min: 'Leer 1 página', normal: 'Leer 15 minutos', epic: 'Leer un capítulo', identity: 'Soy alguien que lee' },
+  { area: 'hogar', title: 'Meditar', min: '3 respiraciones profundas', normal: 'Meditar 5 minutos', epic: 'Meditar 15 minutos', identity: 'Soy alguien que cuida su mente' },
+  { area: 'hogar', title: 'Ordenar mi pieza', min: 'Guardar 3 cosas', normal: 'Ordenar 10 minutos', epic: 'Ordenar todo', identity: 'Soy alguien ordenado con su espacio' },
+  { area: 'entreno', title: 'Caminar', min: 'Caminar 5 minutos', normal: 'Caminar 20 minutos', epic: 'Caminar 45 minutos', identity: 'Soy alguien que se mueve' },
+  { area: 'hogar', title: 'Dormir temprano', min: 'Celular lejos 15 min antes', normal: 'Acostarme a la hora', epic: 'Acostarme 30 min antes', identity: 'Soy alguien que descansa bien' }
 ];
 
 export const PHRASES = {

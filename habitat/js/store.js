@@ -1,6 +1,6 @@
 // Estado de la app guardado en el teléfono (localStorage), con cálculos de
 // rachas, comodines, crecimiento de la mascota y patrones.
-import { PETS, STAGES, HABIT_TEMPLATES } from './data.js';
+import { PETS, STAGES } from './data.js';
 
 const KEY = 'habitat.v1';
 const START_WILDCARDS = 3;
@@ -68,8 +68,20 @@ export function replaceAll(data) {
   save();
 }
 
-export function templates() {
-  return HABIT_TEMPLATES.map((t) => Object.assign({ id: uid(), on: true }, t, { days: t.days.slice() }));
+export function blankHabit(idea) {
+  return Object.assign({ id: uid(), area: 'estudio', title: '', time: '18:00', place: '', days: [1, 2, 3, 4, 5], min: '', normal: '', epic: '', identity: '' }, idea || {});
+}
+
+// Completa lo que el usuario dejó en blanco al crear un hábito.
+export function finishHabit(d) {
+  const h = Object.assign({}, d);
+  delete h._for; delete h.on;
+  h.title = h.title.trim();
+  if (!h.min.trim()) h.min = 'Empezar 2 minutos';
+  if (!h.normal.trim()) h.normal = h.title;
+  if (!h.epic.trim()) h.epic = h.normal + ' y un poco más';
+  if (!h.identity.trim()) h.identity = 'Soy alguien que cumple: ' + h.title.toLowerCase();
+  return h;
 }
 
 // ---------- hábitos y registro
