@@ -1,5 +1,5 @@
 // Hábitat: pantallas, navegación y acciones.
-import { PETS, PET_ORDER, AREAS, LEVELS, FEELINGS, DAY_SHORT, DAY_LONG, MONTHS, PHRASES, STAGES } from './data.js';
+import { PETS, PET_ORDER, AREAS, LEVELS, FEELINGS, DAY_SHORT, DAY_LONG, MONTHS, PHRASES, STAGES, HABIT_IDEAS } from './data.js';
 import * as store from './store.js';
 import { Pet, petImg, scene, petMeta } from './pet.js';
 
@@ -116,6 +116,22 @@ function placeInHero(hero, opts) {
   pet.place({ height: P.h * (W / 390) * (opts.scale || 1), x: P.fx * sc, bottom: H - feetY });
 }
 
+// Mascotas en miniatura, cada una dentro de su propio hogar pintado.
+function petGrid(current, act) {
+  return '<div class="grid5">' + PET_ORDER.map((k) => '<button class="pet-tile' + (k === current ? ' on' : '') + '" data-act="' + act + '" data-k="' + k + '" aria-label="' + PETS[k].label + '" aria-pressed="' + (k === current) + '">' +
+    '<img class="home" src="' + scene('casa', k) + '" alt=""><img class="who" src="' + petImg(k) + '" alt=""></button>').join('') + '</div>';
+}
+function changePet(k) {
+  const s = S();
+  if (k === s.pet.k) { if (pet) pet.tap(); return; }
+  const wasDefault = s.pet.name === PETS[s.pet.k].name;
+  s.pet.k = k;
+  if (wasDefault) s.pet.name = PETS[k].name;
+  store.save();
+  render(true);
+  setTimeout(() => pet && pet.say('¡Hola! Soy ' + s.pet.name), 400);
+}
+
 // ---------- hojas inferiores
 
 function sheet(html, onOpen) {
@@ -163,7 +179,8 @@ function screenInicio() {
     '<div class="shade"></div>' + fireflies() +
     '<div class="hello"><div class="who"><div class="small bold">' + todayLabel() + ' · ' + greeting() + '</div><h1 style="font-size:24px">Hola' + (s.user.name ? ', ' + esc(s.user.name) : '') + '</h1></div>' +
     '<div class="row" style="gap:6px"><span class="pill" title="Racha">' + I.flame + streak + '</span><span class="pill" title="Comodines">' + I.star + s.wildcards + '</span></div></div>' +
-    '<div class="petbar"><span class="display" style="font-size:16px">' + esc(s.pet.name) + '</span><span class="muted small">' + st.label + ' · ' + nextTxt + '</span><span class="bar"><i style="width:' + Math.round(st.prog * 100) + '%"></i></span></div>' +
+    '<div class="petbar"><span class="display" style="font-size:16px">' + esc(s.pet.name) + '</span><span class="muted small">' + st.label + ' · ' + nextTxt + '</span><span class="bar"><i style="width:' + Math.round(st.prog * 100) + '%"></i></span>' +
+    '<button class="swap" data-act="pet-sheet" aria-label="Cambiar de mascota">' + I.paw + '<span>Cambiar</span></button></div>' +
     '</section>' +
     '<div class="pad stack" style="margin-top:14px">' +
     '<a class="btn red block" href="#/rescate" style="min-height:58px;font-size:20px">' + I.flameW + 'Estoy procrastinando</a>' +
@@ -338,10 +355,10 @@ function screenMascota() {
     '<section class="hero" data-hero style="height:250px;border-radius:26px"><img class="scene" src="' + scene('casa', s.pet.k) + '" alt="Hogar de ' + esc(s.pet.name) + '">' + fireflies() + '</section>' +
     '<div class="card stack" style="gap:8px"><div class="row between"><b>Crecimiento</b><span class="muted small">' + plural(st.days, 'día activo', 'días activos') + '</span></div><span class="bar"><i style="width:' + Math.round(st.prog * 100) + '%"></i></span><div class="muted small">' + nextTxt + ' Nunca muere: si te alejas, solo se cansa y te espera.</div>' +
     '<div class="grid4" style="text-align:center;margin-top:4px">' + STAGES.map((x) => '<div style="background:' + (x.label === st.label ? '#E3F0D8' : '#FFF6E5') + ';border-radius:12px;padding:6px 2px"><div class="small bold">' + x.label + '</div><div class="small muted">día ' + x.from + '</div></div>').join('') + '</div></div>' +
-    '<div class="grid4">' + places.map(([p, l]) => '<div class="place"><img src="' + scene(p, s.pet.k) + '" alt="' + l + ' de ' + esc(s.pet.name) + '"><div>' + l + '</div></div>').join('') + '</div>' +
+    '<div class="grid4 places">' + places.map(([p, l]) => '<div class="place"><img src="' + scene(p, s.pet.k) + '" alt="' + l + ' de ' + esc(s.pet.name) + '"><div>' + l + '</div></div>').join('') + '</div>' +
     '<label class="field">Nombre<input class="input" data-model="pet.name" maxlength="16" value="' + esc(s.pet.name) + '"></label>' +
     '<div class="bold" style="font-size:14px">Cambiar de compañero</div><div class="muted small" style="margin-top:-6px">Tu progreso se mantiene.</div>' +
-    '<div class="grid5">' + PET_ORDER.map((k) => '<button class="pet-tile' + (k === s.pet.k ? ' on' : '') + '" data-act="pick-pet" data-k="' + k + '" aria-label="' + PETS[k].label + '" aria-pressed="' + (k === s.pet.k) + '"><img src="' + petImg(k) + '" alt=""></button>').join('') + '</div>' +
+    petGrid(s.pet.k, 'pick-pet') +
     '</div></main>' + nav('mascota');
 }
 function afterMascota() {
@@ -380,7 +397,7 @@ function screenYo() {
 function screenHabito() {
   const isNew = ui.param === 'nuevo';
   if (!ui.draft || ui.draft._for !== ui.param) {
-    const base = isNew ? { id: store.uid(), area: 'estudio', title: '', time: '18:00', place: '', days: [1, 2, 3, 4, 5], min: '', normal: '', epic: '', identity: '' } : store.habitById(ui.param);
+    const base = isNew ? store.blankHabit() : store.habitById(ui.param);
     if (!base) { location.hash = '#/yo'; return ''; }
     ui.draft = JSON.parse(JSON.stringify(base));
     ui.draft._for = ui.param;
@@ -388,15 +405,21 @@ function screenHabito() {
   const d = ui.draft;
   return backdrop(AREAS[d.area].scene, true) +
     '<main class="screen no-nav"><div class="topbar"><button class="icon-btn" data-act="go-back" aria-label="Volver">' + I.back + '</button><h1 style="font-size:22px;flex:1">' + (isNew ? 'Nuevo hábito' : 'Editar hábito') + '</h1></div>' +
-    '<div class="pad stack">' + habitFields(d, 'draft') +
+    '<div class="pad stack">' + (isNew ? ideasRow('draft') : '') + habitFields(d, 'draft', S().pet.k) +
     '<button class="btn block" data-act="save-habit">Guardar</button>' +
     (isNew ? '' : '<button class="btn link" style="color:#9A3F2A" data-act="archive-habit">Quitar este hábito</button>') +
     '</div></main>';
 }
-function habitFields(d, model) {
+function ideasRow(model) {
+  return '<div class="field">Ideas rápidas<div class="row" style="gap:6px;flex-wrap:wrap">' + HABIT_IDEAS.map((x, i) =>
+    '<button class="chip" style="background:#fff;border:2px solid #E0D5BC;min-height:38px;font-size:13px" data-act="idea" data-model="' + model + '" data-i="' + i + '">' + esc(x.title) + '</button>').join('') +
+    '</div><span class="muted small" style="font-weight:600">O escribe el tuyo, el que quieras.</span></div>';
+}
+function habitFields(d, model, k) {
   const days = [1, 2, 3, 4, 5, 6, 0];
-  return '<div class="row" style="gap:8px;flex-wrap:wrap">' + Object.keys(AREAS).map((a) => '<button class="chip" style="border:2px solid ' + (d.area === a ? AREAS[a].ink : 'transparent') + ';background:' + AREAS[a].soft + ';color:' + AREAS[a].ink + ';min-height:40px;padding:6px 14px;font-size:14px" data-act="area" data-model="' + model + '" data-v="' + a + '" aria-pressed="' + (d.area === a) + '">' + AREAS[a].label + '</button>').join('') + '</div>' +
-    '<label class="field">¿Qué vas a hacer?<input class="input" data-model="' + model + '.title" value="' + esc(d.title) + '" placeholder="Ej: Estudiar anatomía"></label>' +
+  return '<label class="field">¿Qué hábito quieres crear?<input class="input" data-model="' + model + '.title" value="' + esc(d.title) + '" placeholder="Ej: Estudiar anatomía, leer, meditar…"></label>' +
+    '<div class="field" role="group" aria-label="Escenario">¿Dónde te acompaña tu mascota?<div class="grid4">' + Object.keys(AREAS).map((a) =>
+    '<button class="scene-pick' + (d.area === a ? ' on' : '') + '" data-act="area" data-model="' + model + '" data-v="' + a + '" aria-pressed="' + (d.area === a) + '"><img src="' + scene(AREAS[a].scene, k) + '" alt=""><span>' + AREAS[a].label + '</span></button>').join('') + '</div></div>' +
     '<div class="grid2"><label class="field">Hora<input class="input" type="time" data-model="' + model + '.time" value="' + esc(d.time) + '"></label><label class="field">Lugar<input class="input" data-model="' + model + '.place" value="' + esc(d.place) + '" placeholder="Ej: Biblioteca"></label></div>' +
     '<div class="field" role="group" aria-label="Días">Días<div class="row" style="gap:6px;flex-wrap:wrap">' + days.map((x) => '<button class="daychip' + (d.days.includes(x) ? ' on' : '') + '" data-act="day" data-model="' + model + '" data-v="' + x + '" aria-pressed="' + d.days.includes(x) + '" aria-label="' + DAY_LONG[x] + '">' + DAY_SHORT[x] + '</button>').join('') + '</div></div>' +
     '<div class="muted small" style="margin-bottom:-4px">Tres niveles: los días malos vale la mínima.</div>' +
@@ -409,7 +432,7 @@ function habitFields(d, model) {
 // ---------- Bienvenida
 
 function screenBienvenida() {
-  const ob = ui.ob || (ui.ob = { step: 0, name: S().user.name || '', k: 'zorro', petName: PETS.zorro.name, custom: false, habits: store.templates(), letter: '', edit: null });
+  const ob = ui.ob || (ui.ob = { step: 0, name: S().user.name || '', k: 'zorro', petName: PETS.zorro.name, custom: false, habits: [], letter: '', edit: null, isNew: false });
   let body = '';
   const next = (label = 'Seguir', dis) => '<button class="btn block" data-act="ob-next"' + (dis ? ' disabled' : '') + '>' + label + '</button>';
   if (ob.step === 0) {
@@ -426,17 +449,21 @@ function screenBienvenida() {
     body = '<h1 style="font-size:26px">Elige tu compañero</h1><div class="muted" style="line-height:1.4">Crecerá contigo. Nunca muere: si te alejas, solo se cansa y te espera.</div>' +
       '<section class="hero" data-hero style="height:230px;border-radius:26px"><img class="scene" src="' + scene('casa', ob.k) + '" alt="Hogar del ' + PETS[ob.k].label.toLowerCase() + '"></section>' +
       '<div class="card" style="font-size:14px;line-height:1.45"><b>' + PETS[ob.k].label + ':</b> ' + PETS[ob.k].desc + '</div>' +
-      '<div class="grid5">' + PET_ORDER.map((k) => '<button class="pet-tile' + (k === ob.k ? ' on' : '') + '" data-act="ob-pet" data-k="' + k + '" aria-label="' + PETS[k].label + '" aria-pressed="' + (k === ob.k) + '"><img src="' + petImg(k) + '" alt=""></button>').join('') + '</div>' +
+      petGrid(ob.k, 'ob-pet') +
       '<label class="field">¿Cómo se va a llamar?<input class="input" data-model="ob.petName" maxlength="16" value="' + esc(ob.petName) + '"></label>' + next('Este es');
   } else if (ob.step === 3) {
     if (ob.edit !== null) {
       const h = ob.habits[ob.edit];
-      body = '<div class="row"><button class="icon-btn" data-act="ob-edit-done" aria-label="Volver">' + I.back + '</button><h1 style="font-size:22px">Ajustar hábito</h1></div>' + habitFields(h, 'ob.habits.' + ob.edit) + '<button class="btn block" data-act="ob-edit-done">Listo</button>';
+      body = '<div class="row"><button class="icon-btn" data-act="ob-cancel-edit" aria-label="Volver">' + I.back + '</button><h1 style="font-size:22px">' + (ob.isNew ? 'Nuevo hábito' : 'Editar hábito') + '</h1></div>' +
+        (ob.isNew ? ideasRow('ob.habits.' + ob.edit) : '') + habitFields(h, 'ob.habits.' + ob.edit, ob.k) +
+        '<button class="btn block" data-act="ob-save-habit">Guardar hábito</button>';
     } else {
-      body = '<h1 style="font-size:26px">Tus hábitos</h1><div class="muted" style="line-height:1.4">Partimos con tus tres áreas. Ajusta la hora y el lugar a tu semana: el cuándo y el dónde son la mitad del trabajo.</div>' +
-        ob.habits.map((h, i) => { const A = AREAS[h.area]; return '<div class="card row" style="gap:12px;opacity:' + (h.on ? 1 : 0.55) + '"><img src="' + scene(A.scene, ob.k) + '" alt="" style="width:56px;height:56px;border-radius:14px;object-fit:cover;object-position:50% 60%"><div style="flex:1;min-width:0"><b>' + esc(h.title) + '</b><div class="muted small">' + h.days.slice().sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)).map((d) => DAY_SHORT[d]).join(' ') + ' · ' + esc(h.time) + ' · ' + esc(h.place) + '</div><div class="small" style="margin-top:2px">Mínimo: ' + esc(h.min) + '</div></div>' +
-          '<div class="stack" style="gap:4px"><button class="btn ghost" style="min-height:38px;font-size:13px;padding:0 10px" data-act="ob-edit" data-i="' + i + '">Ajustar</button><button class="btn link" style="min-height:32px;font-size:13px" data-act="ob-toggle" data-i="' + i + '">' + (h.on ? 'Quitar' : 'Usar') + '</button></div></div>'; }).join('') +
-        next('Seguir', !ob.habits.some((h) => h.on));
+      body = '<h1 style="font-size:26px">Tus hábitos</h1><div class="muted" style="line-height:1.4">Crea los hábitos que tú quieras desarrollar. Ponles hora y lugar: el cuándo y el dónde son la mitad del trabajo.</div>' +
+        ob.habits.map((h, i) => { const A = AREAS[h.area]; return '<div class="card row" style="gap:12px"><img src="' + scene(A.scene, ob.k) + '" alt="" style="width:56px;height:56px;border-radius:14px;object-fit:cover;object-position:50% 60%"><div style="flex:1;min-width:0"><b>' + esc(h.title) + '</b><div class="muted small">' + h.days.slice().sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)).map((d) => DAY_SHORT[d]).join(' ') + ' · ' + esc(h.time) + (h.place ? ' · ' + esc(h.place) : '') + '</div></div>' +
+          '<div class="stack" style="gap:4px"><button class="btn ghost" style="min-height:38px;font-size:13px;padding:0 10px" data-act="ob-edit" data-i="' + i + '">Editar</button><button class="btn link" style="min-height:32px;font-size:13px" data-act="ob-remove" data-i="' + i + '">Quitar</button></div></div>'; }).join('') +
+        (ob.habits.length ? '' : '<div class="card muted" style="line-height:1.45">Todavía no tienes hábitos. Empieza con uno o dos: es mejor partir chico.</div>') +
+        '<button class="btn ghost block" data-act="ob-new">+ Crear un hábito</button>' +
+        next('Seguir', !ob.habits.length);
     }
   } else if (ob.step === 4) {
     body = '<h1 style="font-size:26px">Carta a tu yo del futuro</h1><div class="muted" style="line-height:1.4">Te la mostraré antes de tus tareas y cuando uses el rescate. Escribe por qué quieres cambiar y en quién te quieres convertir.</div>' +
@@ -608,15 +635,16 @@ const ACT = {
     if (el.dataset.v === 'ajustar') { location.hash = '#/habito/' + ex.habitId; return; }
     render(true);
   },
-  'pick-pet'(el) {
-    const s = S(), k = el.dataset.k;
-    if (k === s.pet.k) { if (pet) pet.tap(); return; }
-    const wasDefault = s.pet.name === PETS[s.pet.k].name;
-    s.pet.k = k;
-    if (wasDefault) s.pet.name = PETS[k].name;
-    store.save();
-    render(true);
-    setTimeout(() => pet && pet.say('¡Hola! Soy ' + s.pet.name), 400);
+  'pick-pet'(el) { changePet(el.dataset.k); },
+  'pet-sheet'() {
+    sheet('<h2 style="font-size:21px">Cambiar de compañero</h2><div class="muted" style="margin:4px 0 14px">Puedes cambiarlo cuando quieras. Tu progreso se mantiene.</div>' + petGrid(S().pet.k, 'sheet-pet'), (w) => {
+      w.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-act="sheet-pet"]');
+        if (!b) return;
+        closeSheet();
+        changePet(b.dataset.k);
+      });
+    });
   },
   'save-letter'() {
     const t = app.querySelector('#carta').value.trim();
@@ -651,11 +679,7 @@ const ACT = {
     const d = ui.draft;
     if (!d.title.trim()) { toast('Ponle un nombre al hábito'); return; }
     if (!d.days.length) { toast('Elige al menos un día'); return; }
-    if (!d.min.trim()) d.min = 'Empezar 2 minutos';
-    if (!d.normal.trim()) d.normal = d.title;
-    if (!d.epic.trim()) d.epic = d.normal + ' y un poco más';
-    if (!d.identity.trim()) d.identity = 'Soy alguien que cumple: ' + d.title.toLowerCase();
-    const clean = Object.assign({}, d); delete clean._for;
+    const clean = store.finishHabit(d);
     const i = S().habits.findIndex((h) => h.id === clean.id);
     if (i >= 0) S().habits[i] = clean; else S().habits.push(clean);
     store.save(); ui.draft = null;
@@ -684,14 +708,32 @@ const ACT = {
     render(true);
     setTimeout(() => pet && pet.say('¡Hola! Soy ' + ob.petName), 400);
   },
-  'ob-edit'(el) { ui.ob.edit = Number(el.dataset.i); render(); window.scrollTo(0, 0); },
-  'ob-edit-done'() { ui.ob.edit = null; render(); },
-  'ob-toggle'(el) { const h = ui.ob.habits[Number(el.dataset.i)]; h.on = !h.on; render(true); },
+  'ob-edit'(el) { const ob = ui.ob; ob.edit = Number(el.dataset.i); ob.isNew = false; ob.backup = JSON.stringify(ob.habits[ob.edit]); render(); window.scrollTo(0, 0); },
+  'ob-new'() { const ob = ui.ob; ob.habits.push(store.blankHabit()); ob.edit = ob.habits.length - 1; ob.isNew = true; render(); window.scrollTo(0, 0); },
+  'ob-cancel-edit'() {
+    const ob = ui.ob;
+    if (ob.isNew) ob.habits.splice(ob.edit, 1);
+    else if (ob.backup) ob.habits[ob.edit] = JSON.parse(ob.backup);
+    ob.edit = null; render();
+  },
+  'ob-save-habit'() {
+    const ob = ui.ob, h = ob.habits[ob.edit];
+    if (!h.title.trim()) { toast('Escribe qué hábito quieres crear'); return; }
+    if (!h.days.length) { toast('Elige al menos un día'); return; }
+    ob.habits[ob.edit] = store.finishHabit(h);
+    ob.edit = null; render(); window.scrollTo(0, 0);
+  },
+  'ob-remove'(el) { ui.ob.habits.splice(Number(el.dataset.i), 1); render(true); },
+  idea(el) {
+    const d = getPath(el.dataset.model), x = HABIT_IDEAS[Number(el.dataset.i)];
+    Object.assign(d, { area: x.area, title: x.title, min: x.min, normal: x.normal, epic: x.epic, identity: x.identity });
+    render(true);
+  },
   'ob-finish'() {
     const ob = ui.ob, s = S();
     s.user.name = ob.name.trim();
     s.pet = { k: ob.k, name: (ob.petName || PETS[ob.k].name).trim(), since: store.dayKey() };
-    s.habits = ob.habits.filter((h) => h.on).map((h) => { const c = Object.assign({}, h); delete c.on; return c; });
+    s.habits = ob.habits.map((h) => store.finishHabit(h));
     if (ob.letter.trim()) s.letter = { text: ob.letter.trim(), at: new Date().toISOString() };
     s.onboarded = true;
     s.settledUntil = store.dayKey(); s.lastOpen = store.dayKey();
