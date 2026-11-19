@@ -1,7 +1,7 @@
 import json, os, sys
 H = os.path.dirname(os.path.abspath(__file__))
 shell = open(f'{H}/shell.html').read()
-lib = open(f'{H}/library.js').read()
+lib = open(f'{H}/library.js').read() + '\n' + open(f'{H}/anim.js').read() + '\n' + open(f'{H}/anim_t.js').read() + '\n' + open(f'{H}/anim_map.js').read()
 app = open(f'{H}/app.js').read()
 data = open(f'{H}/data.json').read()
 SUPA = '<script src="vendor/supabase.js"></script>\n<script>window.supabase || document.write(\'<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"><\\/script>\')</script>\n'
