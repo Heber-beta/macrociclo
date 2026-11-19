@@ -230,6 +230,7 @@ dl.kv dd{margin:0}
 .exanim{display:block;width:100%;max-width:380px;height:auto;margin:0 auto;color:var(--ink);background:var(--surface-2);border-radius:var(--r)}
 .exfig figcaption{margin-top:8px;display:grid;gap:6px}
 .mlegend{display:flex;flex-wrap:wrap;gap:6px}
+.bodymap{display:block;width:100%;max-width:240px;height:auto;margin:4px auto 0;color:var(--ink)}
 .mchip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:2px 9px;border:1px solid var(--line);border-radius:99px;background:var(--surface)}
 .mchip i,.mdot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none;vertical-align:-1px}
 </style>
@@ -600,7 +601,7 @@ function solve(p, v, m){
   const foot = (leg, f) => front ? add(leg.J2, dir(leg.a[1] + (f!=null?f:0)), 5) : add(leg.J2, dir(leg.a[1] + sg*(f!=null?f:90)), LEN.ft);
   const Hd = add(N, dir(t + (p.hd||0)), LEN.neck + LEN.head);
   return {H, N, Sc, S:S1, S2, Hp:H1, Hp2:H2, Hd, E:arm1.J1, W:arm1.J2, E2:arm2.J1, W2:arm2.J2, K:leg1.J1, A:leg1.J2, K2:leg2.J1, A2:leg2.J2,
-    T:foot(leg1, p.f), T2:foot(leg2, p.f2!=null ? p.f2 : p.f), arm1, arm2, leg1, leg2, t, front, cv:p.cv||0, rp:p.rp||0, m};
+    T:foot(leg1, p.f), T2:foot(leg2, p.f2!=null ? p.f2 : p.f), arm1, arm2, leg1, leg2, t, front, cv:p.cv||0, rp:p.rp||0, m, hd:p.hd||0};
 }
 /* ----- músculos ----- */
 const MUS = [
@@ -641,31 +642,31 @@ function blob(A, B, f0, f1, side, w, m, front, col, op){
   const rx = Math.max(3, L*(f1-f0)/2), ry = front ? w*0.8 : w;
   return `<ellipse cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" transform="rotate(${(a-90).toFixed(1)} ${c[0].toFixed(1)} ${c[1].toFixed(1)})" fill="${col}" opacity="${op}"/>`;
 }
-function drawMuscles(J, groups, m, front, pulse){
+function drawMuscles(J, groups, m, front, pulse, only, side){
   let s = '';
+  side = side || 'n';
   const segs = (k)=>{
-    const out = [];
+    const out = [], n = side!=='f', f = side!=='n';
     if (k==='tor') out.push([J.H, J.N, 0]);
-    if (k==='ua') { out.push([J.S, J.E, 1]); if (front) out.push([J.S2, J.E2, 1]); }
-    if (k==='fa') { out.push([J.E, J.W, 1]); if (front) out.push([J.E2, J.W2, 1]); }
-    if (k==='th') { out.push([J.Hp, J.K, 1]); if (front) out.push([J.Hp2, J.K2, 1]); }
-    if (k==='sh') { out.push([J.K, J.A, 1]); if (front) out.push([J.K2, J.A2, 1]); }
+    if (k==='ua') { if (n) out.push([J.S, J.E, 1]); if (f) out.push([J.S2, J.E2, 1]); }
+    if (k==='fa') { if (n) out.push([J.E, J.W, 1]); if (f) out.push([J.E2, J.W2, 1]); }
+    if (k==='th') { if (n) out.push([J.Hp, J.K, 1]); if (f) out.push([J.Hp2, J.K2, 1]); }
+    if (k==='sh') { if (n) out.push([J.K, J.A, 1]); if (f) out.push([J.K2, J.A2, 1]); }
     return out;
   };
   const one = (g, col, op)=>{
-    if (g==='hombro'){ const r = 6.2; s += `<circle cx="${J.S[0].toFixed(1)}" cy="${J.S[1].toFixed(1)}" r="${r}" fill="${col}" opacity="${op}"/>`; if (front) s += `<circle cx="${J.S2[0].toFixed(1)}" cy="${J.S2[1].toFixed(1)}" r="${r}" fill="${col}" opacity="${op}"/>`; return; }
-    if (g==='corazon'){ const c = add(J.H, dir(J.t), LEN.tor*.78); s += `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="${(4+pulse*1.6).toFixed(1)}" fill="${col}" opacity="${op}"/>`; return; }
-    const z = ZONES[g]; if (!z) return;
+    if (g==='hombro'){ if (!only.has('sho')) return; const r = 5.6; const pts = []; if (side!=='f') pts.push(J.S); if (side!=='n') pts.push(J.S2); pts.forEach(c=>{ s += `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="${r}" fill="${col}" opacity="${op}"/>`; }); return; }
+    if (g==='corazon'){ if (!only.has('tor')) return; const c = add(add(J.H, dir(J.t), LEN.tor*.74), dir(J.t+(m?-90:90)), front?-4:3); const r = 3.2+pulse*1.2; s += `<path d="M${c[0].toFixed(1)},${(c[1]+r*0.9).toFixed(1)} l${-r*1.1},${-r*1.05} a${r*0.58},${r*0.58} 0 1 1 ${r*1.1},${-r*0.75} a${r*0.58},${r*0.58} 0 1 1 ${r*1.1},${r*0.75} z" fill="#E5484D" opacity=".95"/>`; return; }
+    const z = ZONES[g]; if (!z || !only.has(z[0])) return;
     for (const [A,B,isLimb] of segs(z[0])){
-      // en extremidades el "delante" va hacia la izquierda del segmento; en el tronco hacia la derecha
-      const side = isLimb ? -z[3] : z[3];
+      const sd = isLimb ? -z[3] : z[3];
       if (front && z[0]==='tor' && (g==='dorsal' || g==='oblicuos' || g==='serrato' || g==='gluteo' || g==='pecho' || g==='lumbar' || g==='espalda')){
         const pp = dir(J.t+90);
         for (const sg of [-1,1]) s += blob(add(A,pp,sg*6), add(B,pp,sg*6), z[1], z[2], 0, z[4]*.75, m, true, col, op);
-      } else s += blob(A, B, z[1], z[2], side, z[4], m, front, col, op);
+      } else s += blob(A, B, z[1], z[2], sd, z[4]*0.85, m, front, col, op);
     }
   };
-  const op1 = (0.82 + pulse*0.18).toFixed(2), op2 = (0.72 + pulse*0.14).toFixed(2);
+  const op1 = (0.78 + pulse*0.2).toFixed(2), op2 = (0.7 + pulse*0.14).toFixed(2);
   groups.sec.forEach(g=>one(g, C2, op2));
   groups.prim.forEach(g=>one(g, C1, op1));
   return s;
@@ -673,26 +674,83 @@ function drawMuscles(J, groups, m, front, pulse){
 /* ----- dibujo ----- */
 const P = p=>p[0].toFixed(1)+','+p[1].toFixed(1);
 const ln = (a,b,w,extra='')=>`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke-width="${w}" ${extra}/>`;
-function drawBody(J, v, layer){
-  const front = v==='f';
-  const far = `stroke="currentColor" stroke-opacity="${front ? .42 : .2}" stroke-linecap="round"`;
-  const near = `stroke="currentColor" stroke-opacity=".42" stroke-linecap="round"`;
+// ----- figura humana -----
+const SKIN = '#E8B48C', SKIN2 = '#C98F68', LINE = '#9A6446', HAIR = '#3B2619', SHORTS = '#2F3E5C', SHORTS2 = '#25314A', SHOE = '#3C4250', SOLE = '#E9ECEF';
+function cap(A, B, r1, r2){
+  const v = [B[0]-A[0], B[1]-A[1]], L = Math.hypot(v[0], v[1]) || 0.001, u = [v[0]/L, v[1]/L], n = [-u[1], u[0]];
+  const p1 = [A[0]+n[0]*r1, A[1]+n[1]*r1], p2 = [B[0]+n[0]*r2, B[1]+n[1]*r2], p3 = [B[0]-n[0]*r2, B[1]-n[1]*r2], p4 = [A[0]-n[0]*r1, A[1]-n[1]*r1];
+  return `M${P(p1)}L${P(p2)}A${r2} ${r2} 0 0 0 ${P(p3)}L${P(p4)}A${r1} ${r1} 0 0 0 ${P(p1)}Z`;
+}
+const shape = (d, fill, stroke, sw=1)=>`<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+const mix = (a,b,t)=>[a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t];
+function legShape(Hp, K, A, T, far){
+  const sk = far ? SKIN2 : SKIN, ln_ = far ? '#8A5A3E' : LINE, sh = far ? SHORTS2 : SHORTS;
   let s = '';
-  if (layer==='far'){
-    s += `<g ${far} fill="none">`+ln(J.Hp2,J.K2,12)+ln(J.K2,J.A2,9.5)+ln(J.A2,J.T2,6)+ln(J.S2,J.E2,9)+ln(J.E2,J.W2,8)+`</g>`;
-    return s;
-  }
-  s += `<g ${near} fill="none">`;
-  if (front){ s += ln(J.Hp, J.Hp2, 13) + ln(J.S, J.S2, 12); s += ln(J.H, add(J.H, dir(J.t), LEN.tor-2), 22); s += ln(J.S,J.E,9)+ln(J.E,J.W,8); }
-  else if (J.cv){ const E = add(J.H, dir(J.t), LEN.tor-3), M = add(add(J.H, dir(J.t), (LEN.tor-3)/2), dir(J.t+(J.m?-90:90)), -J.cv*2); s += `<path d="M${P(J.H)} Q${P(M)} ${P(E)}" stroke-width="17"/>`; }
-  else s += ln(J.H, add(J.H, dir(J.t), LEN.tor-3), 17);
-  s += ln(add(J.H, dir(J.t), LEN.tor-3), J.N, 7);
-  s += ln(J.Hp,J.K,12)+ln(J.K,J.A,9.5)+ln(J.A,J.T,6);
-  s += `</g>`;
+  s += shape(cap(K, A, 5.8, 3.8), sk, ln_);
+  s += shape(cap(Hp, K, 8.4, 5.9), sk, ln_);
+  s += shape(cap(Hp, mix(Hp, K, .48), 9.2, 7.9), sh, '#1B2436');
+  s += shape(cap(A, T, 3.6, 2.9), SHOE, '#262A33');
   return s;
 }
-function drawArm(J){ return `<g stroke="currentColor" stroke-opacity=".42" stroke-linecap="round" fill="none">${ln(J.S,J.E,9)+ln(J.E,J.W,8)}</g>`; }
-function drawHead(J){ return `<circle cx="${J.Hd[0].toFixed(1)}" cy="${J.Hd[1].toFixed(1)}" r="${LEN.head}" fill="currentColor" fill-opacity=".42"/>`; }
+function armShape(S, E, W, far){
+  const sk = far ? SKIN2 : SKIN, ln_ = far ? '#8A5A3E' : LINE;
+  return shape(cap(E, W, 4.6, 3.3), sk, ln_) + shape(cap(S, E, 6, 4.6), sk, ln_) + `<circle cx="${W[0].toFixed(1)}" cy="${W[1].toFixed(1)}" r="3.6" fill="${sk}" stroke="${ln_}" stroke-width="1"/>`;
+}
+function torsoShape(J, front, m){
+  const t = J.t, u = dir(t), H = J.H;
+  let s = '';
+  if (front){
+    const p = dir(t+90);
+    const at = (f, w)=>[add(add(H,u,LEN.tor*f), p, -w), add(add(H,u,LEN.tor*f), p, w)];
+    const [h1,h2] = at(-0.06, 12), [w1,w2] = at(.42, 11), [c1,c2] = at(.78, 14.5), [s1,s2] = at(.93, 15.5);
+    const d = `M${P(h1)} Q${P(add(w1,p,-1))} ${P(c1)} L${P(s1)} Q${P(add(add(H,u,LEN.tor),p,0))} ${P(s2)} L${P(c2)} Q${P(add(w2,p,1))} ${P(h2)} Z`;
+    s += shape(d, SKIN, LINE, 1.1);
+    // líneas anatómicas suaves
+    const mid = (f)=>add(H,u,LEN.tor*f);
+    s += `<path d="M${P(add(mid(.86),p,-11))} Q${P(add(mid(.68),p,-6))} ${P(mid(.7))} Q${P(add(mid(.68),p,6))} ${P(add(mid(.86),p,11))}" fill="none" stroke="${LINE}" stroke-width=".8" stroke-opacity=".7"/>`;
+    s += `<line x1="${mid(.62)[0].toFixed(1)}" y1="${mid(.62)[1].toFixed(1)}" x2="${mid(.22)[0].toFixed(1)}" y2="${mid(.22)[1].toFixed(1)}" stroke="${LINE}" stroke-width=".7" stroke-opacity=".6"/>`;
+    s += shape(cap(add(add(H,u,-3),p,-11.5), add(add(H,u,-3),p,11.5), 6.5, 6.5), SHORTS, '#1B2436');
+    s += shape(cap(add(H,u,LEN.tor-4), J.N, 3.6, 3.6), SKIN, LINE);
+    return s;
+  }
+  const fw = dir(t + (m ? -90 : 90));  // hacia delante del cuerpo
+  const top = add(H, u, LEN.tor-5);
+  const cv = J.cv || 0;
+  const P0 = add(H, fw, -10.5), P1 = add(H, fw, 9.5);
+  const Q0 = add(top, fw, -10.5), Q1 = add(top, fw, 11.5);
+  const mb = add(add(H, u, LEN.tor*.5), fw, -cv*2);
+  const B0 = add(mb, fw, -12.5), B1 = add(add(mb, fw, 12.5), u, 5);
+  const d = `M${P(P0)} Q${P(B0)} ${P(Q0)} Q${P(add(add(top,u,6),fw,0))} ${P(Q1)} Q${P(B1)} ${P(P1)} Q${P(add(H,u,-7))} ${P(P0)} Z`;
+  s += shape(d, SKIN, LINE, 1.1);
+  // pecho y abdomen (línea suave)
+  const cp = add(add(H,u,LEN.tor*.7), fw, 9);
+  s += `<path d="M${P(add(cp,u,6))} Q${P(add(cp,fw,1.5))} ${P(add(add(cp,u,-6),fw,-2.5))}" fill="none" stroke="${LINE}" stroke-width=".8" stroke-opacity=".7"/>`;
+  s += shape(cap(add(H,u,-2), add(H,u,8), 10.6, 10.2), SHORTS, '#1B2436');
+  s += shape(cap(top, J.N, 3.8, 3.6), SKIN, LINE);
+  return s;
+}
+function headShape(J, front, m){
+  const c = J.Hd, r = LEN.head, up = dir(J.t + (J.hd||0));
+  if (front){
+    return `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="${r}" fill="${SKIN}" stroke="${LINE}" stroke-width="1"/>` +
+      `<path d="${cap(add(c,up,4), add(c,up,4.01), r-1.2, r-1.2)}" fill="${HAIR}"/>` +
+      `<circle cx="${add(c,up,-1.5)[0].toFixed(1)}" cy="${add(c,up,-1.5)[1].toFixed(1)}" r="${r-2.4}" fill="${SKIN}"/>`;
+  }
+  const fw = dir(J.t + (J.hd||0) + (m ? -90 : 90));
+  const nose = add(add(c, fw, r-0.5), up, -1);
+  let s = `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="${r}" fill="${SKIN}" stroke="${LINE}" stroke-width="1"/>`;
+  s += `<circle cx="${nose[0].toFixed(1)}" cy="${nose[1].toFixed(1)}" r="2" fill="${SKIN}" stroke="${LINE}" stroke-width=".8"/>`;
+  // pelo: casquete atrás y arriba
+  const hc = add(add(c, fw, -2.2), up, 2);
+  s += `<circle cx="${hc[0].toFixed(1)}" cy="${hc[1].toFixed(1)}" r="${r-1.6}" fill="${HAIR}"/>`;
+  const face = add(add(c, fw, 2.6), up, -1.6);
+  s += `<circle cx="${face[0].toFixed(1)}" cy="${face[1].toFixed(1)}" r="${r-2.8}" fill="${SKIN}"/>`;
+  const ear = add(c, fw, -1.2);
+  s += `<circle cx="${ear[0].toFixed(1)}" cy="${ear[1].toFixed(1)}" r="1.8" fill="${SKIN}" stroke="${LINE}" stroke-width=".7"/>`;
+  const eye = add(add(c, fw, r-3.2), up, 1.2);
+  s += `<circle cx="${eye[0].toFixed(1)}" cy="${eye[1].toFixed(1)}" r=".9" fill="${HAIR}"/>`;
+  return s;
+}
 const PROP = `stroke="currentColor" stroke-opacity=".55" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
 const PROPF = `fill="currentColor" fill-opacity=".16" stroke="currentColor" stroke-opacity=".5"`;
 function jp(J, at){ return typeof at==='string' ? J[at] : at; }
@@ -724,15 +782,28 @@ const HELD = new Set(['db','kb','plate','hbar','stick','wheel','bar']);
 function frameSVG(A, pose, groups, pulse){
   const J = solve(pose, A.v, A.m);
   const props = A.p || [];
-  let s = `<line x1="0" y1="${FL}" x2="240" y2="${FL}" stroke="currentColor" stroke-opacity=".3" stroke-width="1.5"/>`;
-  if (A.nofloor) s = '';
+  const front = A.v==='f', m = A.m;
+  let s = A.nofloor ? '' : `<line x1="0" y1="${FL}" x2="240" y2="${FL}" stroke="currentColor" stroke-opacity=".3" stroke-width="1.5"/>`;
   for (const pr of props) if (!HELD.has(pr.k) && !pr.top) s += drawProp(pr, J);
-  if (A.v!=='f') s += drawBody(J, A.v, 'far');
-  else s += drawBody(J, A.v, 'far');
-  s += drawBody(J, A.v, 'near');
-  if (A.v!=='f') s += drawArm(J);
-  s += drawMuscles(J, groups, A.m, A.v==='f', pulse);
-  s += drawHead(J);
+  const LEG = new Set(['th','sh']), ARM = new Set(['ua','fa','sho']), TOR = new Set(['tor']);
+  if (front){
+    s += legShape(J.Hp2, J.K2, J.A2, J.T2, false) + legShape(J.Hp, J.K, J.A, J.T, false);
+    s += torsoShape(J, true, m);
+    s += drawMuscles(J, groups, m, true, pulse, TOR, 'b') + drawMuscles(J, groups, m, true, pulse, LEG, 'b');
+    s += armShape(J.S2, J.E2, J.W2, false) + armShape(J.S, J.E, J.W, false);
+    s += drawMuscles(J, groups, m, true, pulse, ARM, 'b');
+    s += headShape(J, true, m);
+  } else {
+    s += armShape(J.S2, J.E2, J.W2, true);
+    s += legShape(J.Hp2, J.K2, J.A2, J.T2, true);
+    s += torsoShape(J, false, m);
+    s += drawMuscles(J, groups, m, false, pulse, TOR, 'n');
+    s += legShape(J.Hp, J.K, J.A, J.T, false);
+    s += drawMuscles(J, groups, m, false, pulse, LEG, 'n');
+    s += headShape(J, false, m);
+    s += armShape(J.S, J.E, J.W, false);
+    s += drawMuscles(J, groups, m, false, pulse, ARM, 'n');
+  }
   for (const pr of props) if (HELD.has(pr.k) || pr.top) s += drawProp(pr, J);
   return s;
 }
@@ -791,6 +862,61 @@ function legend(e){
   const parts = String(e.muscles||'').split(/,\s*/).filter(Boolean);
   return parts.map((m,i)=>{ const g = muscleGroups(m); const has = g.prim.size || g.sec.size; return `<span class="mchip"><i style="background:${!has ? 'transparent' : i===0 ? C1 : C2};${has?'':'border:1px dashed currentColor'}"></i>${m.replace(/</g,'&lt;')}</span>`; }).join('');
 }
+
+/* ----- mapa del cuerpo (frente y espalda) ----- */
+function bodyMap(e){
+  const g = muscleGroups((e&&e.muscles)||'');
+  const col = k => g.prim.has(k) ? C1 : g.sec.has(k) ? C2 : null;
+  const R = (k, d) => { const c = col(k); return `<path d="${d}" fill="${c || SKIN}" stroke="${c ? '#7A3A1C' : LINE}" stroke-width="${c?.7:.5}" stroke-opacity="${c?.6:.45}"/>`; };
+  const el = (k, cx, cy, rx, ry, rot=0)=>{ const c = col(k); const base = (k==='gluteo'||k==='psoas') ? SHORTS : SKIN; return `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" transform="rotate(${rot} ${cx} ${cy})" fill="${c || base}" stroke="${c ? '#7A3A1C' : (k==='gluteo'||k==='psoas') ? '#1B2436' : LINE}" stroke-width="${c?.7:.5}" stroke-opacity="${c?.6:.45}"/>`; };
+  const fig = (cx, back)=>{
+    let s = '';
+    const sk = (d)=>`<path d="${d}" fill="${SKIN}" stroke="${LINE}" stroke-width="1"/>`;
+    // silueta
+    s += sk(cap([cx-17,44],[cx-23,80],6,4.6)) + sk(cap([cx-23,80],[cx-26,108],4.6,3.4)) + `<circle cx="${cx-26.5}" cy="111" r="3.8" fill="${SKIN}" stroke="${LINE}"/>`;
+    s += sk(cap([cx+17,44],[cx+23,80],6,4.6)) + sk(cap([cx+23,80],[cx+26,108],4.6,3.4)) + `<circle cx="${cx+26.5}" cy="111" r="3.8" fill="${SKIN}" stroke="${LINE}"/>`;
+    s += sk(cap([cx-8,100],[cx-9,140],8.4,5.8)) + sk(cap([cx-9,140],[cx-9,178],5.8,3.8));
+    s += sk(cap([cx+8,100],[cx+9,140],8.4,5.8)) + sk(cap([cx+9,140],[cx+9,178],5.8,3.8));
+    s += `<path d="M${cx-12},102 Q${cx-15},84 ${cx-15},70 L${cx-19},44 Q${cx},34 ${cx+19},44 L${cx+15},70 Q${cx+15},84 ${cx+12},102 Z" fill="${SKIN}" stroke="${LINE}" stroke-width="1"/>`;
+    s += sk(cap([cx,30],[cx,38],4,4));
+    // músculos
+    if (!back){
+      s += R('trapecio', `M${cx-5},36 L${cx-14},42 L${cx-5},41 Z M${cx+5},36 L${cx+14},42 L${cx+5},41 Z`);
+      s += el('hombro', cx-19, 47, 5.6, 6.6, 15) + el('hombro', cx+19, 47, 5.6, 6.6, -15);
+      s += el('pecho', cx-7.5, 53, 7.2, 5.8) + el('pecho', cx+7.5, 53, 7.2, 5.8);
+      s += el('serrato', cx-13, 64, 2.4, 4.2) + el('serrato', cx+13, 64, 2.4, 4.2);
+      s += R('abdomen', `M${cx-6.5},62 L${cx+6.5},62 L${cx+6},92 Q${cx},96 ${cx-6},92 Z`);
+      s += `<path d="M${cx},63 L${cx},93 M${cx-6},70 L${cx+6},70 M${cx-6},78 L${cx+6},78 M${cx-6},86 L${cx+6},86" stroke="${LINE}" stroke-width=".5" stroke-opacity=".5"/>`;
+      s += el('oblicuos', cx-11, 78, 3.2, 9) + el('oblicuos', cx+11, 78, 3.2, 9);
+      s += el('biceps', cx-21.5, 63, 3.6, 9.5, 10) + el('biceps', cx+21.5, 63, 3.6, 9.5, -10);
+      s += el('antebrazo', cx-24.5, 93, 3.4, 11, 8) + el('antebrazo', cx+24.5, 93, 3.4, 11, -8);
+      s += `<path d="M${cx-17},96 L${cx+17},96 L${cx+18},118 L${cx+2},118 L${cx},106 L${cx-2},118 L${cx-18},118 Z" fill="${SHORTS}"/>`;
+      s += el('psoas', cx-6, 100, 2.6, 4.2, -20) + el('psoas', cx+6, 100, 2.6, 4.2, 20);
+      s += el('cuadriceps', cx-9.5, 132, 5.8, 13) + el('cuadriceps', cx+9.5, 132, 5.8, 13);
+      s += el('aductor', cx-3.5, 124, 2.2, 7) + el('aductor', cx+3.5, 124, 2.2, 7);
+      s += el('tibial', cx-10, 158, 2.4, 11) + el('tibial', cx+10, 158, 2.4, 11);
+      s += `<circle cx="${cx}" cy="18" r="10" fill="${SKIN}" stroke="${LINE}"/><path d="M${cx-10},17 Q${cx-9},6 ${cx},6 Q${cx+9},6 ${cx+10},17 Q${cx+5},10 ${cx},11 Q${cx-5},10 ${cx-10},17 Z" fill="${HAIR}"/>`;
+      if (g.prim.has('corazon') || g.sec.has('corazon')) s += `<path d="M${cx+7},60 l-4,-4 a2.3,2.3 0 1 1 4,-2.8 a2.3,2.3 0 1 1 4,2.8 z" fill="#E5484D"/>`;
+    } else {
+      s += R('trapecio', `M${cx},32 L${cx+13},43 L${cx+5},47 L${cx},58 L${cx-5},47 L${cx-13},43 Z`);
+      s += el('hombro', cx-19, 47, 5.6, 6.6, 15) + el('hombro', cx+19, 47, 5.6, 6.6, -15);
+      s += R('espalda', `M${cx-4},48 L${cx-11},50 L${cx-10},60 L${cx-3},62 Z M${cx+4},48 L${cx+11},50 L${cx+10},60 L${cx+3},62 Z`);
+      s += R('dorsal', `M${cx-15},50 Q${cx-17},66 ${cx-10},82 L${cx-4},76 L${cx-4},64 L${cx-11},61 Z M${cx+15},50 Q${cx+17},66 ${cx+10},82 L${cx+4},76 L${cx+4},64 L${cx+11},61 Z`);
+      s += R('lumbar', `M${cx-8},78 L${cx-1},78 L${cx-1},95 L${cx-9},95 Z M${cx+8},78 L${cx+1},78 L${cx+1},95 L${cx+9},95 Z`);
+      s += el('triceps', cx-21.5, 63, 3.8, 9.5, 10) + el('triceps', cx+21.5, 63, 3.8, 9.5, -10);
+      s += el('antebrazo', cx-24.5, 93, 3.4, 11, 8) + el('antebrazo', cx+24.5, 93, 3.4, 11, -8);
+      s += `<path d="M${cx-17},96 L${cx+17},96 L${cx+18},118 L${cx+2},118 L${cx},110 L${cx-2},118 L${cx-18},118 Z" fill="${SHORTS}"/>`;
+      s += el('gluteo', cx-7, 105, 7, 8) + el('gluteo', cx+7, 105, 7, 8);
+      s += el('isquio', cx-9.5, 134, 5.4, 12.5) + el('isquio', cx+9.5, 134, 5.4, 12.5);
+      s += el('gemelo', cx-9.5, 154, 4.6, 9) + el('gemelo', cx+9.5, 154, 4.6, 9);
+      s += `<circle cx="${cx}" cy="18" r="10" fill="${HAIR}" stroke="${LINE}"/>`;
+    }
+    s += `<path d="${cap([cx-9,178],[cx-12,183],3.6,3)}" fill="${SHOE}"/><path d="${cap([cx+9,178],[cx+12,183],3.6,3)}" fill="${SHOE}"/>`;
+    s += `<text x="${cx}" y="198" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity=".7">${back?'Espalda':'Frente'}</text>`;
+    return s;
+  };
+  return `<svg class="bodymap" viewBox="0 0 200 202" role="img" aria-label="Mapa de músculos trabajados">${fig(50,false)}${fig(150,true)}</svg>`;
+}
 // bucle único: anima todos los <svg class="exanim"> visibles
 let running = false;
 const reduce = typeof matchMedia!=='undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -807,7 +933,7 @@ function tick(ts){
   requestAnimationFrame(tick);
 }
 function start(){ if (!running && typeof requestAnimationFrame!=='undefined'){ running = true; requestAnimationFrame(tick); } }
-return {svg, still, legend, start, build, muscleGroups, solve, LEN, FL, AY, HY, dir, add, ang, ik};
+return {svg, still, legend, bodyMap, start, build, muscleGroups, solve, LEN, FL, AY, HY, dir, add, ang, ik};
 })();
 
 /* ----- Plantillas de movimiento ----- */
@@ -2537,7 +2663,7 @@ function viewLibrary(){
     else if (open){
       const h = exHistory(e.name), u = unitLbl(e.unit);
       det = `<div class="exdet"><figure class="exfig"><svg class="exanim" data-ex="${esc(e.name)}" viewBox="0 0 240 200" role="img" aria-label="Animación de cómo se hace: ${esc(e.name)}"></svg>
-        <figcaption><div class="mlegend">${EXA.legend(e)}</div><span class="small muted"><span class="mdot" style="background:#F0592F"></span> músculo principal · <span class="mdot" style="background:#F6AE2D"></span> secundarios</span></figcaption></figure>
+        <figcaption>${EXA.bodyMap(e)}<div class="mlegend">${EXA.legend(e)}</div><span class="small muted"><span class="mdot" style="background:#F0592F"></span> músculo principal · <span class="mdot" style="background:#F6AE2D"></span> secundarios</span></figcaption></figure>
       <dl class="kv"><dt>Patrón</dt><dd>${esc(e.pattern)} · ${esc(SUBS[e.sub]||e.sub||'')}</dd><dt>Equipamiento</dt><dd>${esc(equipLbl(e))}</dd><dt>Músculos</dt><dd>${esc(e.muscles)}</dd><dt>Técnica</dt><dd>${esc(e.tech)}</dd><dt>Más fácil</dt><dd>${esc(e.reg)}</dd><dt>Siguiente</dt><dd>${esc(e.prog)}</dd><dt>Carga</dt><dd>${e.pct ? `Mueve ~${Math.round(e.pct*100)}% de tu peso corporal` : 'Solo cuenta el peso externo (kg)'}</dd></dl></div>
       <div><span class="eyebrow">Tu historial</span>${h.length?`<p class="small">Mejor marca: <b>${fmt(Math.max(...h.map(x=>x.best)),1)} ${u}</b>${Math.max(...h.map(x=>x.kg))?` · máx. lastre ${fmt(Math.max(...h.map(x=>x.kg)),1)} kg`:''}</p><div class="exlist small">${h.slice(-6).reverse().map(x=>`<div><span>${fd(x.date,{day:'numeric',month:'short'})} · ${esc(x.m)} · S${x.w}-${x.k}</span><span>${x.n} series · mejor ${fmt(x.best,1)} ${u}${x.rpe!=null?` · RPE ${x.rpe}`:''}</span></div>`).join('')}</div>`:'<p class="empty">Todavía no hay registros de este ejercicio.</p>'}</div>
       <div class="row"><button class="btn sm" data-act="libEdit" data-arg="${esc(e.name)}">${e.custom?'Editar':'Personalizar'}</button>${e.custom && !e.builtinBase && !exUsed(e.name) ? `<button class="btn sm danger" data-act="libDel" data-arg="${esc(e.name)}">Borrar</button>`:''}</div>`;
