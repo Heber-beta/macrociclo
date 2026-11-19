@@ -4,7 +4,7 @@ const CFG = window.APP_CONFIG || {};
 const V1 = window.V1_DATA || null;
 const $ = s => document.querySelector(s);
 const PATTERNS = ['Tracción','Empuje','Piernas','Core','Habilidad','Acondicionamiento','Movilidad'];
-const SUBS = {vertical:'Vertical',horizontal:'Horizontal',fondos:'Fondos / tríceps',rodilla:'Rodilla dominante',cadera:'Cadera dominante',unilateral:'Unilateral',gemelo:'Gemelos / tibial',antiext:'Anti-extensión',lateral:'Lateral / acarreo',flexion:'Flexión',rotacion:'Anti-rotación',metcon:'Metabólico',pliometria:'Pliometría',cardio:'Cardio',movilidad:'Movilidad'};
+const SUBS = {vertical:'Vertical',horizontal:'Horizontal',fondos:'Fondos / tríceps',rodilla:'Rodilla dominante',cadera:'Cadera dominante',unilateral:'Unilateral',gemelo:'Gemelos / tibial',antiext:'Anti-extensión',lateral:'Lateral / acarreo',flexion:'Flexión',rotacion:'Anti-rotación',metcon:'Metabólico',pliometria:'Pliometría',cardio:'Cardio',movilidad:'Movilidad',aislamiento:'Aislamiento'};
 const EQUIP = {pc:'Peso corporal',barra:'Barra de dominadas',paralelas:'Paralelas',anillas:'Anillas',banda:'Bandas elásticas',banco:'Banco, cajón o silla',mancuernas:'Mancuernas',kb:'Kettlebell',barraol:'Barra olímpica y discos',polea:'Máquinas y poleas',comba:'Comba'};
 const WEIGHTED = new Set(['mancuernas','kb','barraol','polea']);
 const WDAYS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
@@ -622,6 +622,7 @@ function render(){
   const confirm = UI.confirm ? `<div class="alert crit row between"><span>${esc(UI.confirm.msg)}</span><span class="row"><button class="btn danger sm" data-act="${UI.confirm.act}" data-arg="${esc(UI.confirm.arg||'')}">${esc(UI.confirm.label||'Confirmar')}</button><button class="btn sm" data-act="cancelConfirm">Cancelar</button></span></div>` : '';
   $('#app').innerHTML = header() + `<main class="wrap" id="view">${confirm}${html}</main>`;
   drawCharts();
+  if (typeof EXA!=='undefined') EXA.start();
   if (focusId){ const el = document.getElementById(focusId); if (el){ el.focus({preventScroll:true}); if (sel && el.setSelectionRange) try{ el.setSelectionRange(sel[0],sel[1]); }catch(e){} } }
 }
 
@@ -768,7 +769,9 @@ function viewLibrary(){
     if (editing) det = exEditor(e);
     else if (open){
       const h = exHistory(e.name), u = unitLbl(e.unit);
-      det = `<dl class="kv"><dt>Patrón</dt><dd>${esc(e.pattern)} · ${esc(SUBS[e.sub]||e.sub||'')}</dd><dt>Equipamiento</dt><dd>${esc(equipLbl(e))}</dd><dt>Músculos</dt><dd>${esc(e.muscles)}</dd><dt>Técnica</dt><dd>${esc(e.tech)}</dd><dt>Más fácil</dt><dd>${esc(e.reg)}</dd><dt>Siguiente</dt><dd>${esc(e.prog)}</dd><dt>Carga</dt><dd>${e.pct ? `Mueve ~${Math.round(e.pct*100)}% de tu peso corporal` : 'Solo cuenta el peso externo (kg)'}</dd></dl>
+      det = `<div class="exdet"><figure class="exfig"><svg class="exanim" data-ex="${esc(e.name)}" viewBox="0 0 240 200" role="img" aria-label="Animación de cómo se hace: ${esc(e.name)}"></svg>
+        <figcaption><div class="mlegend">${EXA.legend(e)}</div><span class="small muted"><span class="mdot" style="background:#F0592F"></span> músculo principal · <span class="mdot" style="background:#F6AE2D"></span> secundarios</span></figcaption></figure>
+      <dl class="kv"><dt>Patrón</dt><dd>${esc(e.pattern)} · ${esc(SUBS[e.sub]||e.sub||'')}</dd><dt>Equipamiento</dt><dd>${esc(equipLbl(e))}</dd><dt>Músculos</dt><dd>${esc(e.muscles)}</dd><dt>Técnica</dt><dd>${esc(e.tech)}</dd><dt>Más fácil</dt><dd>${esc(e.reg)}</dd><dt>Siguiente</dt><dd>${esc(e.prog)}</dd><dt>Carga</dt><dd>${e.pct ? `Mueve ~${Math.round(e.pct*100)}% de tu peso corporal` : 'Solo cuenta el peso externo (kg)'}</dd></dl></div>
       <div><span class="eyebrow">Tu historial</span>${h.length?`<p class="small">Mejor marca: <b>${fmt(Math.max(...h.map(x=>x.best)),1)} ${u}</b>${Math.max(...h.map(x=>x.kg))?` · máx. lastre ${fmt(Math.max(...h.map(x=>x.kg)),1)} kg`:''}</p><div class="exlist small">${h.slice(-6).reverse().map(x=>`<div><span>${fd(x.date,{day:'numeric',month:'short'})} · ${esc(x.m)} · S${x.w}-${x.k}</span><span>${x.n} series · mejor ${fmt(x.best,1)} ${u}${x.rpe!=null?` · RPE ${x.rpe}`:''}</span></div>`).join('')}</div>`:'<p class="empty">Todavía no hay registros de este ejercicio.</p>'}</div>
       <div class="row"><button class="btn sm" data-act="libEdit" data-arg="${esc(e.name)}">${e.custom?'Editar':'Personalizar'}</button>${e.custom && !e.builtinBase && !exUsed(e.name) ? `<button class="btn sm danger" data-act="libDel" data-arg="${esc(e.name)}">Borrar</button>`:''}</div>`;
     }

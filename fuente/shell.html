@@ -213,6 +213,13 @@ dl.kv dd{margin:0}
 .prog{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
 .prog i{display:block;height:100%;background:var(--accent)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.exdet{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));align-items:start}
+.exfig{margin:0}
+.exanim{display:block;width:100%;max-width:380px;height:auto;margin:0 auto;color:var(--ink);background:var(--surface-2);border-radius:var(--r)}
+.exfig figcaption{margin-top:8px;display:grid;gap:6px}
+.mlegend{display:flex;flex-wrap:wrap;gap:6px}
+.mchip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:2px 9px;border:1px solid var(--line);border-radius:99px;background:var(--surface)}
+.mchip i,.mdot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none;vertical-align:-1px}
 </style>
 <div id="app"></div>
 <div id="modal" class="modal" hidden></div>
