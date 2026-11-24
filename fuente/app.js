@@ -1513,7 +1513,7 @@ function importJson(text){
   let o; try { o = JSON.parse(text); } catch(e){ toast('El archivo no es una copia válida (JSON).'); return; }
   if (o && o.app==='macrociclo' && o.macros){
     const n = normState(o);
-    S.settings = n.settings; markSettings();
+    if (o.settings){ S.settings = n.settings; markSettings(); }
     for (const [id,M] of Object.entries(n.macros)){ S.macros[id] = M; markMacro(M); S.entries[id] = n.entries[id] || {}; Sync.loaded.add(id); Object.keys(S.entries[id]).forEach(k=>markEntry(id,k)); }
     if (n.entries[DIARIO]){ S.entries[DIARIO] = Object.assign(S.entries[DIARIO]||{}, n.entries[DIARIO]); Sync.loaded.add(DIARIO); Object.keys(n.entries[DIARIO]).forEach(k=>markEntry(DIARIO,k)); }
     UI.importText = ''; toast('Copia importada'); go('home'); return;
